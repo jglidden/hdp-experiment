@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
 {% block otherhead %}
-    <style>
-        .hidden { display: none; }
-        .unhidden { display: block; }
-    </style>
-    <script src="../static/scripts/correct.js"></script>
+<style type="text/css">
+    .hidden  { display: none; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -14,13 +12,29 @@
     <div class="span12">
         <img src=static/{{img}}>
         <p><br>Is this a {{label}}?</p>
+        <form form="display: none;" action="" method="POST">
+            <input type="hidden" name="img" value={{ img }}>
+            <input type="hidden" name="label" value={{ label }}>
+            <input type="hidden" name="input" value="True">
+            <button type="submit" class="btn btn-success">Yes</button></a>
+        </form>
 
-        <a href="javascript:correct('yes')"><button class="btn btn-success">Yes</button></a>
-        <button class="btn btn-danger">No</button>
-        <div id="correct" class="hidden">
-            <p>Correct!</p>
-        </div>
-    </div>
+        <form form="display: none;" action="" method="POST">
+            <input type="hidden" name="img" value={{ img }}>
+            <input type="hidden" name="label" value={{ label }}>
+            <input type="hidden" name="input" value="False">
+            <button type="submit" class="btn btn-danger" >No</button>
+        </form>
+
+        {% if correct == True %}
+        <p><br>Correct!</p>
+        {% endif %}
+
+        {% if correct == False %}
+        <p><br>Incorrect!</p>
+        {% endif %}
+        
+
 </div>
 
 {% endblock %}

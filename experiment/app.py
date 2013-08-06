@@ -1,3 +1,4 @@
+from os import path
 from flask import *
 from flask.ext.login import (LoginManager,
                              login_required,
@@ -89,13 +90,24 @@ def register():
         return redirect(url_for('exp'))
 
 
-@app.route('/exp')
+@app.route('/exp', methods=['GET', 'POST'])
 @login_required
 def exp():
     user_id = current_user.get_username()
-    label = EXPERIMENT_KEY.keys()[0]
-    img = 'stimuli/fruit-6-57.png'
-    correct = False
+    if request.method == 'GET':
+        correct = None
+        show_correct = 
+        label = EXPERIMENT_KEY.keys()[0]
+        img = 'stimuli/fruit-6-57.png'
+    elif request.method == 'POST':
+        label = request.form.get('label')
+        img = request.form.get('img')
+        label_number = path.split(img)[1].split('-')[1]
+        input = request.form.get('input')
+        actual = 'False'
+        if label_number in EXPERIMENT_KEY[label]:
+            actual = 'True'
+        correct = (actual == input)
     return render_template('experiment.html', label=label, img=img, correct=correct)
 
 
