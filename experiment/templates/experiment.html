@@ -10,28 +10,29 @@
 
 <div class="row">
     <div class="span12">
-        <img src=static/{{img}}>
+        <img src={{img}}>
         <p><br>Is this a {{label}}?</p>
-        <form form="display: none;" action="" method="POST">
-            <input type="hidden" name="img" value={{ img }}>
-            <input type="hidden" name="label" value={{ label }}>
-            <input type="hidden" name="input" value="True">
-            <button type="submit" class="btn btn-success">Yes</button></a>
-        </form>
 
-        <form form="display: none;" action="" method="POST">
-            <input type="hidden" name="img" value={{ img }}>
-            <input type="hidden" name="label" value={{ label }}>
-            <input type="hidden" name="input" value="False">
-            <button type="submit" class="btn btn-danger" >No</button>
-        </form>
-
-        {% if correct == True %}
-        <p><br>Correct!</p>
+        {% if yes %}
+            <button name="yes" value="True" class="btn btn-success">Yes</button></a>
+        {% elif no %}
+            <button name="no" value="False" class="btn btn-danger" >No</button>
+        {% else %}
+            <form form="display: none;" action="" method="POST">
+                <input type="hidden" name="img" value={{ img }}>
+                <input type="hidden" name="label" value={{ label }}>
+            <button type="submit" name="yes" value="True" class="btn btn-success">Yes</button></a>
+            <button type="submit" name="no" value="False" class="btn btn-danger" >No</button>
+            </form>
         {% endif %}
 
-        {% if correct == False %}
-        <p><br>Incorrect!</p>
+        {% if correct == True %}
+        <p>Correct!</p>
+        <a href="/exp"> Next </a>
+
+        {% elif correct == False %}
+        <p>Incorrect!</p>
+        <a href="/exp"> Next </a>
         {% endif %}
         
 

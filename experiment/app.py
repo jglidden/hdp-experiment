@@ -1,4 +1,4 @@
-from os import path
+from experiment import exp as experiment
 from flask import *
 from flask.ext.login import (LoginManager,
                              login_required,
@@ -15,9 +15,6 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 
 USERS = {}
-
-with open('key.json') as f:
-    EXPERIMENT_KEY = json.load(f)
 
 
 class User(UserMixin):
@@ -93,22 +90,27 @@ def register():
 @app.route('/exp', methods=['GET', 'POST'])
 @login_required
 def exp():
+    yes = None
+    no = None
     user_id = current_user.get_username()
     if request.method == 'GET':
         correct = None
-        show_correct = 
-        label = EXPERIMENT_KEY.keys()[0]
-        img = 'stimuli/fruit-6-57.png'
+        label, img = experiment.gen_pair()
     elif request.method == 'POST':
         label = request.form.get('label')
         img = request.form.get('img')
-        label_number = path.split(img)[1].split('-')[1]
-        input = request.form.get('input')
-        actual = 'False'
-        if label_number in EXPERIMENT_KEY[label]:
-            actual = 'True'
-        correct = (actual == input)
-    return render_template('experiment.html', label=label, img=img, correct=correct)
+        yes = ('yes' in request.form.keys())
+        no = ('no' in request.form.keys())
+        input = yes
+        actual = experiment.check_pair(label, img)
+        correct = (input == actual)
+    return render_template(
+        'experiment.html',
+        label=label,
+        img=img,
+        correct=correct,
+        yes=yes,
+        no=no)
 
 
 
