@@ -8,6 +8,10 @@ with open('key.json') as f:
     EXPERIMENT_KEY = json.load(f)
 ALL_CATS = set([i for cat in EXPERIMENT_KEY.values() for i in cat])
 ALL_IMGS = [os.path.join(STIM_DIR, fname) for fname in os.listdir(STIM_DIR) if 'prototype' not in fname]
+
+def img_to_cat(img):
+    return os.path.split(fname)[1].split('-')[1]
+
 IMGS_BY_CAT = {}
 for cat in ALL_CATS:
     IMGS_BY_CAT[cat] = []
@@ -17,9 +21,6 @@ for cat in ALL_CATS:
 IMGS_BY_LABEL = {}
 for label, cats in EXPERIMENT_KEY.iteritems():
     IMGS_BY_LABEL[label] = list(set([img for cat in cats for img in IMGS_BY_CAT[cat]]))
-
-def img_to_cat(img):
-    return os.path.split(fname)[1].split('-')[1]
 
 
 def _gen_pair(show_correct):
