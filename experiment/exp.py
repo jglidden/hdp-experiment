@@ -1,16 +1,21 @@
 import os
 import random
 import json
+import sys
 
-STIM_DIR = 'static/stimuli'
+SCRIPTDIR = os.path.dirname(__file__)
+
+STIM_PREFIX = 'static/stimuli'
+STIM_DIR = os.path.join(SCRIPTDIR, STIM_PREFIX)
+KEY_FILE = os.path.join(SCRIPTDIR, 'key.json')
 CORRECT_FREQUENCY = .25
-with open('key.json') as f:
+with open(KEY_FILE) as f:
     EXPERIMENT_KEY = json.load(f)
 ALL_CATS = set([i for cat in EXPERIMENT_KEY.values() for i in cat])
-ALL_IMGS = [os.path.join(STIM_DIR, fname) for fname in os.listdir(STIM_DIR) if 'prototype' not in fname]
+ALL_IMGS = [os.path.join(STIM_PREFIX, fname) for fname in os.listdir(STIM_DIR) if 'prototype' not in fname]
 
 def img_to_cat(img):
-    return os.path.split(fname)[1].split('-')[1]
+    return os.path.split(img)[1].split('-')[1]
 
 IMGS_BY_CAT = {}
 for cat in ALL_CATS:
