@@ -6,7 +6,7 @@ var width = 960,
 var svg = d3.select('#content')
     .append('svg')
     .attr('width', width)
-    .attr('height', height);
+    .attr('height', height)
 
 var drag_line = svg.append('svg:path')
     .attr('class', 'link dragline hidden')
@@ -117,6 +117,11 @@ function tick() {
 
 }
 
+function mousedown() {
+    //prevent I-bar on drag
+    d3.event.preventDefault();
+}
+
 function mouseup() {
     if(mousedown_node) {
         drag_line
@@ -135,6 +140,7 @@ function mousemove() {
 
 
 svg.on('mouseup', mouseup);
+svg.on('mousedown', mousedown);
 svg.on('mousemove', mousemove);
 restart();
 

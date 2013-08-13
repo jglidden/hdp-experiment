@@ -112,6 +112,10 @@ def exp():
         yes=yes,
         no=no)
 
+@app.route('/tree', methods=['GET'])
+def tree():
+    return render_template('tree.html')
+
 
 
 

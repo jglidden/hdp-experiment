@@ -8,10 +8,15 @@ svg {
   user-select: none;
 }
 
+svg:not(.active) path.link {
+    cursor: pointer;
+}
+
 path.link {
     fill: none;
     stroke: #000;
     stroke-width: 4px;
+    cursor: default;
 }
 
 path.link.dragline {
@@ -28,6 +33,7 @@ circle.node {
 
 text {
     font: 12px sans-serif;
+    pointer-events: none;
 }
 
 text.id {
