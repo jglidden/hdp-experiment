@@ -112,9 +112,13 @@ def exp():
         yes=yes,
         no=no)
 
-@app.route('/tree', methods=['GET'])
+@app.route('/tree', methods=['GET', 'POST'])
 def tree():
+    if request.method == 'POST':
+        links = request.form.get('links')
+        return json.dumps(links)
     return render_template('tree.html')
+
 
 
 

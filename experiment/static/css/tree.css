@@ -8,10 +8,6 @@ svg {
   user-select: none;
 }
 
-svg:not(.active) path.link {
-    cursor: pointer;
-}
-
 path.link {
     fill: none;
     stroke: #000;
@@ -29,6 +25,11 @@ path.link.hidden {
 
 circle.node {
     stroke-width: 1.5px;
+    cursor: default;
+}
+
+svg:not(.shift) circle.node {
+    cursor: move;
 }
 
 text {
