@@ -15,6 +15,7 @@ with open(KEY_FILE) as f:
 ALL_CATS = set([i for cat in EXPERIMENT_KEY.values() for i in cat])
 ALL_IMGS = [os.path.join(STIM_PREFIX, os.path.split(fname)[1])
             for fname in glob(os.path.join(STIM_DIR, '*.png')) if 'prototype' not in fname]
+TRUE_LINKS = []
 
 def img_to_cat(img):
     return os.path.split(img)[1].split('-')[1]
@@ -29,6 +30,18 @@ IMGS_BY_LABEL = {}
 for label, cats in EXPERIMENT_KEY.iteritems():
     IMGS_BY_LABEL[label] = list(set([img for cat in cats for img in IMGS_BY_CAT[cat]]))
 
+
+def gen_pairs():
+    labels = random.shuffle(EXPERIMENT_KEY.keys())
+    pairs = []
+    for label in labels:
+        if random.random() < CORRECT_FREQUENCY:
+            category = random.choice(EXPERIMENT_KEY[label])
+            img = random.choice(IMGS_BY_CAT[category])
+        else:
+            img = random.choice(ALL_IMGS)
+        pairs.append((label, img))
+    return pairs
 
 def _gen_pair(show_correct):
     label = random.choice(EXPERIMENT_KEY.keys())
@@ -47,3 +60,19 @@ def check_pair(label, img):
     actual = (img in IMGS_BY_LABEL[label])
     return actual
 
+
+def check_links(links):
+    return set(links) == set(TRUE_LINKS)
+
+def process_links(links):
+    processed_links = []
+    for link in links:
+        if link['right']:
+            parent = link['source']
+            child = link['target']
+        elif link['left']:
+            parent = link['target']
+            child = link['source']
+        processed_links.append((parent, child))
+    return processed_links
+            

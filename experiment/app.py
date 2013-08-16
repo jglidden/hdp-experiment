@@ -14,6 +14,8 @@ login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 
+DEBUG_BLOCKSIZE = 4
+BLOCKS = 8
 USERS = {}
 
 
@@ -42,9 +44,29 @@ def get_user(username):
 
 def create_user(username):
     doc = {'username': username,
-           'results': {}}
+           'sessions': {'completed': [], 'session': create_session()}}
     USERS[username] = doc
     return User(doc)
+
+def create_session():
+    pairs = experiment.gen_pairs()
+    blocks = []
+    for i in xrange(0, len(l), n):
+        blocks.append(pairs[i:i+BLOCKS][:DEBUG_BLOCKSIZE])
+    return {'blocks': blocks}
+
+def finish_session(user):
+    user_doc = user.doc
+    session = user_doc['session']
+    completed = {
+        'correct': session['correct'],
+        'incorrect': session['incorrect']
+    }
+    user_doc['completed'].append(completed)
+    new_session = create_session()
+    user_doc['session'] = new_session
+    return new_session
+
     
 
 @app.route('/')
@@ -93,6 +115,9 @@ def exp():
     yes = None
     no = None
     user_id = current_user.get_username()
+    session = current_user.doc['sessions']['current']
+    if session is None:
+        session = create_session(current_user)
     if request.method == 'GET':
         correct = None
         label, img = experiment.gen_pair()
@@ -116,8 +141,13 @@ def exp():
 def tree():
     if request.method == 'POST':
         links = request.form.get('links')
-        return json.dumps(links)
+        return redirect(url_for('results'))
     return render_template('tree.html')
+
+@app.route('/results', methods=['GET'])
+def results():
+    return 'hi!'
+
 
 
 
