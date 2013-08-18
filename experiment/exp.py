@@ -32,7 +32,8 @@ for label, cats in EXPERIMENT_KEY.iteritems():
 
 
 def gen_pairs():
-    labels = random.shuffle(EXPERIMENT_KEY.keys())
+    labels = EXPERIMENT_KEY.keys()
+    random.shuffle(labels)
     pairs = []
     for label in labels:
         if random.random() < CORRECT_FREQUENCY:
