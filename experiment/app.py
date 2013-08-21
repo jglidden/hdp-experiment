@@ -25,7 +25,8 @@ class User(UserMixin):
         if self.doc['sessions'] is None:
            doc['sessions'] = {'completed': [], 'current_session': self.create_session()}
            doc['block_index'] = 1
-           self.advance_pair()
+           doc['pair_index'] = 1
+           doc['current_pair'] = doc['sessions']['current_session']['current_block'].pop()
     
     def get_username(self):
         return self.doc['username']
@@ -43,13 +44,10 @@ class User(UserMixin):
         block_index = doc['block_index']
         return label, img, pair_index, block_index
 
-
     def advance_pair(self):
         doc = self.doc
         session = doc['sessions']['current_session']
-        current_block = session['current_block']
-        doc['current_pair'] = current_block.pop()
-        if len(current_block) == 0:
+        if len(session['current_block']) == 0:
             doc['pair_index'] = 1
             if len(session['blocks']) == 0:
                 doc['block_index'] = 1
@@ -59,26 +57,27 @@ class User(UserMixin):
                 doc['block_index'] = doc.get('block_index', 0) + 1
         else:
             doc['pair_index'] = doc.get('pair_index', 0) + 1
+        doc['current_pair'] = doc['sessions']['current_session']['current_block'].pop()
 
     def finish_session(self):
         doc = self.doc
-        session = doc['session']
+        session = doc['sessions']['current_session']
         completed = {
             'correct': session['correct'],
             'incorrect': session['incorrect']
         }
-        doc['completed'].append(completed)
-        new_session = create_session()
-        doc['session'] = new_session
-        self.advance_pair()
-
+        doc['sessions']['completed'].append(completed)
+        new_session = self.create_session()
+        doc['sessions']['current_session'] = new_session
 
     def create_session(self):
         pairs = experiment.gen_pairs()
         blocks = []
-        for i in xrange(0, len(pairs), BLOCKS):
-            blocks.append(pairs[i:i+BLOCKS][:DEBUG_BLOCKSIZE+1])
-        current = blocks.pop(0)
+        for i in xrange(0, len(pairs), BLOCKS+1):
+            blocks.append(pairs[i:i+BLOCKS][:DEBUG_BLOCKSIZE])
+        assert all([len(b) == DEBUG_BLOCKSIZE for b in blocks])
+        assert len(blocks) == BLOCKS, '{} != {}'.format(len(blocks), BLOCKS)
+        current = blocks.pop()
         return {'blocks': blocks,
                 'current_block': current,
                 'correct': 0,
@@ -145,6 +144,7 @@ def register():
 @login_required
 def exp():
     print 'DEBUG_BLOCKS', len(current_user.doc['sessions']['current_session']['blocks'])
+    print 'DEBUG_BLOCK_SIZES', [len(b) for b in current_user.doc['sessions']['current_session']['blocks']]
     print 'DEBUG_CURRENT', len(current_user.doc['sessions']['current_session']['current_block'])
     yes = None
     no = None
