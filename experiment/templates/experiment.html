@@ -6,41 +6,49 @@
 </style>
 {% endblock %}
 
+{% block instructions %}
+Respond yes if the label is appropriate for the image, otherwise respond no.
+{% endblock %}
+
 {% block content %}
 
+<script src="../static/js/exp.js"></script>
 <div class="main">
     <div class="span12">
         <img src={{img}}>
-        <p><br>Is this a {{label}}?</p>
+        <p><br>Is this a <big><strong>{{label}}</big></h3>?</p>
 
-        {% if yes %}
-            <button class="btn btn-success">Yes</button>
-            <button btn="display: none;" class="btn btn-danger">No</button>
-        {% elif no %}
-            <button btn="display: none;" class="btn btn-success">Yes</button>
-            <button class="btn btn-danger" >No</button>
+        {% if res == '1' %}
+            <button class="btn">Yes</button>
+        {% elif res == '0' %}
+            <button class="btn" >No</button>
         {% else %}
-            <form form="display: none;" action="" method="POST">
+            <form id="resform" form="display: none;" action="" method="POST">
                 <input type="hidden" name="img" value={{ img }}>
                 <input type="hidden" name="label" value={{ label }}>
-            <button type="submit" name="yes" value="True" class="btn btn-success">Yes</button></a>
-            <button type="submit" name="no" value="False" class="btn btn-danger" >No</button>
+                <input type="hidden" id="resfield" name="res">
+            <button class="btn" onclick="submitResponse(1)">Yes</button></a>
+            <button class="btn" onclick="submitResponse(0)">No</button>
             </form>
         {% endif %}
 
         {% if correct == True %}
-        <p>Correct!</p>
-        <a href="/exp"> Next </a>
+        <h3 class="text-success"><strong>Correct!</strong></h3>
+        <script type="text/javascript">
+            nextStimuli();
+        </script>
 
         {% elif correct == False %}
-        <p>Incorrect!</p>
-        <a href="/exp"> Next </a>
+        <h3 class="text-warning"><strong>Incorrect!</strong></h3>
+        <script type="text/javascript">
+            nextStimuli();
+        </script>
         {% endif %}
         
 </div>
-<div>
-    <p>Item:{{pair_index}}/{{block_size}}</p>
-    <p></br>Block:{{block_index}}/{{block_count}}</p>
+<div class=status>
+    <p><br>Item:{{pair_index}}/{{block_size}}</p>
+    <p>Block:{{block_index}}/{{block_count}}</p>
 </div>
 
 {% endblock %}

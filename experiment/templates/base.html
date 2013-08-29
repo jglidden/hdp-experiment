@@ -9,6 +9,9 @@
         {% endblock %}
     </head>
     <body>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" ></script>
+        <script src="../static/vendor/bootstrap.js"></script>
+        <script src="../static/vendor/d3.v3.min.js"></script>
         <div class="navbar navbar-inverse navbar-fixed-top">
           <div class="container">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
@@ -16,22 +19,36 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Project name</a>
             <div class="nav-collapse collapse">
               <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a data-toggle="modal" href="#instructions">Instructions</a></li>
+                <li><a href="/logout">Logout</a></li>
               </ul>
             </div><!--/.nav-collapse -->
           </div>
         </div>
 
+        <!-- Modal -->
+        <div class="modal fade" id="instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title">Instructions</h4>
+            </div>
+            <div class="modal-body">
+                <p>{% block instructions %}{% endblock %}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+
         <div class="container" id="content">
             {% block content %}
             {% endblock %}
         </div>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" ></script>
-        <script src="../static/vendor/bootstrap.js"></script>
     </body>
 </html>

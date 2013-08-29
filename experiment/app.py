@@ -31,6 +31,12 @@ class User(UserMixin):
     def get_username(self):
         return self.doc['username']
 
+    def set_new(self, val):
+        self.doc['new'] = val
+
+    def get_new(self):
+        return self.doc['new']
+
     def get_id(self):
         return self.doc['username']
 
@@ -95,14 +101,24 @@ def get_user(username):
 
 
 def create_user(username):
-    doc = {'username': username, 'sessions': None}
+    doc = {'username': username, 'new': True, 'sessions': None}
     USERS[username] = doc
     return User(doc)
 
 
 @app.route('/')
-def hello_world():
-    return 'Hello World!'
+def root():
+    return redirect(url_for('user'))
+
+
+@app.route('/user')
+@login_required
+def user():
+    username = current_user.get_username()
+    new = True if current_user.get_new() else None
+    print new
+    return render_template('user.html', username=username, new=new)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -137,37 +153,32 @@ def register():
             return render_template('register.html', username_collision=True)
         user = create_user(username)
         login_user(user, remember=True)
-        return redirect(url_for('exp'))
+        return redirect(url_for('user'))
 
 
 @app.route('/exp', methods=['GET', 'POST'])
 @login_required
 def exp():
-    print 'DEBUG_BLOCKS', len(current_user.doc['sessions']['current_session']['blocks'])
-    print 'DEBUG_BLOCK_SIZES', [len(b) for b in current_user.doc['sessions']['current_session']['blocks']]
-    print 'DEBUG_CURRENT', len(current_user.doc['sessions']['current_session']['current_block'])
-    yes = None
-    no = None
+    current_user.set_new(False)
     user_id = current_user.get_username()
     label, img, pair_index, block_index = current_user.get_current_pair()
+    response = None
     if request.method == 'GET':
         correct = None
     elif request.method == 'POST':
         label = request.form.get('label')
-        img = request.form.get('img')
-        yes = ('yes' in request.form.keys())
-        no = ('no' in request.form.keys())
-        input = yes
+        input = request.form['res'] == '1'
+        response = request.form['res']
         actual = experiment.check_pair(label, img)
         correct = (input == actual)
         current_user.advance_pair()
+    print response, type(response)
     return render_template(
         'experiment.html',
         label=label,
         img=img,
         correct=correct,
-        yes=yes,
-        no=no,
+        res=response,
         pair_index=pair_index,
         block_size=DEBUG_BLOCKSIZE,
         block_index=block_index,
