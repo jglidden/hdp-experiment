@@ -12,7 +12,7 @@ import logging
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATASTORE')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 db = SQLAlchemy(app)
 
 from logging import StreamHandler
