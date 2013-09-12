@@ -9,6 +9,7 @@ from flask.ext.login import (LoginManager,
                              current_user)
 from flask.ext.sqlalchemy import SQLAlchemy
 import logging
+import uuid
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
@@ -35,10 +36,12 @@ class Participant(db.Model):
     sessions = db.relationship('Session', backref='participant')
     current_session = db.relationship('Session', uselist=False)
 
-    def __init__(self, username):
+    def __init__(self, username, id=None):
+        if id is None:
+            self.id = str(uuid.uuid4())
         self.username = username
         self.debriefed = False
-        self.current_session = Session(self.id)
+        self.current_session = Session(self)
 
     def __repr__(self):
         return '<Participant %r>' %self.username
@@ -52,6 +55,7 @@ class Session(db.Model):
     participant_id = db.Column(db.String(128), db.ForeignKey('participant.id'))
 
     def __init__(self, participant):
+        self.id = str(uuid.uuid4())
         self.participant = participant
         self.img_index = 0
         self.correct = 0
