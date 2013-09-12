@@ -8,11 +8,16 @@ from flask.ext.login import (LoginManager,
                              logout_user,
                              current_user)
 from flask.ext.sqlalchemy import SQLAlchemy
+import logging
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATASTORE')
 db = SQLAlchemy(app)
+
+from logging import StreamHandler
+app.logger.addHandler(StreamHandler())
+
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
