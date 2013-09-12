@@ -15,6 +15,8 @@ with open(KEY_FILE) as f:
 ALL_CATS = set([i for cat in EXPERIMENT_KEY.values() for i in cat])
 ALL_IMGS = [os.path.join(STIM_PREFIX, os.path.split(fname)[1])
             for fname in glob(os.path.join(STIM_DIR, '*.png')) if 'prototype' not in fname]
+random.shuffle(ALL_IMGS)
+ALL_IMGS = ALL_IMGS[:6]
 TRUE_LINKS = []
 
 def img_to_cat(img):
@@ -30,6 +32,13 @@ IMGS_BY_LABEL = {}
 for label, cats in EXPERIMENT_KEY.iteritems():
     IMGS_BY_LABEL[label] = list(set([img for cat in cats for img in IMGS_BY_CAT[cat]]))
 
+LABELS_BY_CAT = {}
+for label, cats in EXPERIMENT_KEY.iteritems():
+    for cat in cats:
+        if cat not in LABELS_BY_CAT:
+            LABELS_BY_CAT[cat] = []
+        LABELS_BY_CAT[cat].append(label)
+
 
 def gen_pairs():
     labels = EXPERIMENT_KEY.keys()
@@ -43,6 +52,16 @@ def gen_pairs():
             img = random.choice(ALL_IMGS)
         pairs.append((label, img))
     return pairs
+
+def gen_label(img):
+    show_correct = random.random() < CORRECT_FREQUENCY
+    cat = img_to_cat(img)
+    if show_correct:
+        label = random.choice(LABELS_BY_CAT[cat])
+    else:
+        label = random.choice(EXPERIMENT_KEY.keys())
+    return label
+    
 
 def _gen_pair(show_correct):
     label = random.choice(EXPERIMENT_KEY.keys())
@@ -60,7 +79,6 @@ def gen_pair():
 def check_pair(label, img):
     actual = (img in IMGS_BY_LABEL[label])
     return actual
-
 
 def check_links(links):
     return set(links) == set(TRUE_LINKS)

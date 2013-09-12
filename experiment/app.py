@@ -1,3 +1,4 @@
+import os
 from experiment import exp as experiment
 from flask import *
 from flask.ext.login import (LoginManager,
@@ -6,104 +7,116 @@ from flask.ext.login import (LoginManager,
                              login_user,
                              logout_user,
                              current_user)
+from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATASTORE')
+db = SQLAlchemy(app)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 
-DEBUG_BLOCKSIZE = 2
 BLOCKS = 3
+BLOCKSIZE = len(experiment.ALL_IMGS)/BLOCKS
 USERS = {}
 
+# Database models
+class Participant(db.Model):
+    id = db.Column(db.String(128), primary_key=True)
+    username = db.Column(db.String(128))
+    debriefed = db.Column(db.Boolean)
+    sessions = db.relationship('Session', backref='participant')
+    current_session = db.relationship('Session', uselist=False)
 
+    def __init__(self, username):
+        self.username = username
+        self.debriefed = False
+        self.current_session = Session(self.id)
+
+    def __repr__(self):
+        return '<Participant %r>' %self.username
+
+
+class Session(db.Model):
+    id = db.Column(db.String(128), primary_key=True)
+    img_index = db.Column(db.Integer)
+    correct = db.Column(db.Integer)
+    incorrect = db.Column(db.Integer)
+    participant_id = db.Column(db.String(128), db.ForeignKey('participant.id'))
+
+    def __init__(self, participant):
+        self.participant = participant
+        self.img_index = 0
+        self.correct = 0
+        self.incorrect = 0
+
+
+# User object
 class User(UserMixin):
-    def __init__(self, doc):
-        self.doc = doc
-        if self.doc['sessions'] is None:
-           doc['sessions'] = {'completed': [], 'current_session': self.create_session()}
-           doc['block_index'] = 1
-           doc['pair_index'] = 1
-           doc['current_pair'] = doc['sessions']['current_session']['current_block'].pop()
+    def __init__(self, participant):
+        self.participant = participant
     
     def get_username(self):
-        return self.doc['username']
+        return self.participant.username
 
-    def set_new(self, val):
-        self.doc['new'] = val
+    def set_debriefed(self, val):
+        self.participant.debriefed = val
+        db.session.commit()
 
-    def get_new(self):
-        return self.doc['new']
+    def is_debriefed(self):
+        return self.participant.debriefed
 
     def get_id(self):
-        return self.doc['username']
+        return self.participant.id
 
     def check_password(self, password):
         return True
 
     def get_current_pair(self):
-        doc = self.doc
-        label, img = doc['current_pair']
-        pair_index = doc['pair_index']
-        block_index = doc['block_index']
-        return label, img, pair_index, block_index
+        current_session = self.participant.current_session
+        img_index = current_session.img_index
+        img = experiment.ALL_IMGS[img_index]
+        label = experiment.gen_label(img)
+        block_index = img_index / BLOCKSIZE + 1
+        local_index = img_index % BLOCKSIZE + 1
+        return label, img, local_index, block_index
 
     def advance_pair(self):
-        doc = self.doc
-        session = doc['sessions']['current_session']
-        if len(session['current_block']) == 0:
-            doc['pair_index'] = 1
-            if len(session['blocks']) == 0:
-                doc['block_index'] = 1
-                self.finish_session()
-            else:
-                session['current_block'] = session['blocks'].pop()
-                doc['block_index'] = doc.get('block_index', 0) + 1
-        else:
-            doc['pair_index'] = doc.get('pair_index', 0) + 1
-        doc['current_pair'] = doc['sessions']['current_session']['current_block'].pop()
+        current_session = self.participant.current_session
+        current_session.img_index += 1
+        db.session.commit()
 
     def finish_session(self):
-        doc = self.doc
-        session = doc['sessions']['current_session']
-        completed = {
-            'correct': session['correct'],
-            'incorrect': session['incorrect']
-        }
-        doc['sessions']['completed'].append(completed)
-        new_session = self.create_session()
-        doc['sessions']['current_session'] = new_session
-
-    def create_session(self):
-        pairs = experiment.gen_pairs()
-        blocks = []
-        for i in xrange(0, len(pairs), BLOCKS+1):
-            blocks.append(pairs[i:i+BLOCKS][:DEBUG_BLOCKSIZE])
-        assert all([len(b) == DEBUG_BLOCKSIZE for b in blocks])
-        assert len(blocks) == BLOCKS, '{} != {}'.format(len(blocks), BLOCKS)
-        current = blocks.pop()
-        return {'blocks': blocks,
-                'current_block': current,
-                'correct': 0,
-                'incorrect': 0}
+        new_session = Session(self.participant)
+        self.participant.current_session = new_session
+        db.session.commit()
 
 
 
 @login_manager.user_loader
-def get_user(username):
-    doc = USERS.get(username)
-    if doc is None:
+def get_user(userid):
+    participant = Participant.query.filter_by(id=userid).first()
+    if participant is None:
         return None
     else:
-        return User(doc)
+        return User(participant)
+
+
+def get_user_by_username(username):
+    participant = Participant.query.filter_by(username=username).first()
+    if participant is None:
+        return None
+    else:
+        return User(participant)
 
 
 def create_user(username):
-    doc = {'username': username, 'new': True, 'sessions': None}
-    USERS[username] = doc
-    return User(doc)
+    participant = Participant(username)
+    db.session.add(participant)
+    db.session.commit()
+    return User(participant)
 
 
 @app.route('/')
@@ -115,8 +128,7 @@ def root():
 @login_required
 def user():
     username = current_user.get_username()
-    new = True if current_user.get_new() else None
-    print new
+    new = True if not current_user.is_debriefed() else None
     return render_template('user.html', username=username, new=new)
 
 
@@ -126,7 +138,7 @@ def login():
     if request.method == 'POST':
         if 'username' not in request.form:
             return redirect(url_for('login'))
-        user = get_user(request.form['username'])
+        user = get_user_by_username(request.form['username'])
         if user is None:
             return redirect(url_for('login'))
         login_user(user, remember=True)
@@ -148,7 +160,7 @@ def register():
         return render_template('register.html')
     elif request.method == 'POST':
         username = request.form.get('username').strip()
-        existing_user = get_user(username)
+        existing_user = get_user_by_username(username)
         if existing_user:
             return render_template('register.html', username_collision=True)
         user = create_user(username)
@@ -159,7 +171,7 @@ def register():
 @app.route('/exp', methods=['GET', 'POST'])
 @login_required
 def exp():
-    current_user.set_new(False)
+    current_user.set_debriefed(True)
     user_id = current_user.get_username()
     label, img, pair_index, block_index = current_user.get_current_pair()
     response = None
@@ -180,7 +192,7 @@ def exp():
         correct=correct,
         res=response,
         pair_index=pair_index,
-        block_size=DEBUG_BLOCKSIZE,
+        block_size=BLOCKSIZE,
         block_index=block_index,
         block_count=BLOCKS)
 
