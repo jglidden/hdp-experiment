@@ -9,9 +9,10 @@
         {% endblock %}
     </head>
     <body>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" ></script>
+        <script src="../static/vendor/jquery-1.10.2.min.js" ></script>
         <script src="../static/vendor/bootstrap.js"></script>
         <script src="../static/vendor/d3.v3.min.js"></script>
+
         <div class="navbar navbar-inverse navbar-fixed-top">
           <div class="container">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
@@ -28,25 +29,25 @@
           </div>
         </div>
 
-        <!-- Modal -->
-        <div class="modal fade" id="instructions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-              <h4 class="modal-title">Instructions</h4>
-            </div>
-            <div class="modal-body">
-                {% block instructions %}{% endblock %}
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-          </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
 
         <div class="container" id="content">
+            <!-- Modal -->
+            <div class="modal fade" id="instructions" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                  <h4 class="modal-title">Instructions</h4>
+                </div>
+                <div class="modal-body">
+                    {% block instructions %}{% endblock %}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
             {% block content %}
             {% endblock %}
         </div>

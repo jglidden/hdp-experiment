@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h2> End of block </h2>
+        {% if quiz %}
+            {% if diffsign == 'negative' %}
+            <h3> You are <p class="text-warning">-{{diff}}</p> off your best</h3>
+            {% elif diffsign == 'positive' %}
+            <h3> You are <p class="text-success">+{{diff}}</p> over your best</h3>
+            {% else %}
+            <h3> You are <p class="text-muted">+{{diff}}</p> over your best</h3>
+            {% endif %}
+        {% endif %}
+        <h3> Take a break and when you are ready, <a href="exp">continue to next block</a></h3>
+     </div>
+</div>
+{% endblock %}

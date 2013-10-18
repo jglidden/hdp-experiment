@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h2> You have reached the end of this session </h2>
+        {% if quiz %}
+            {% if diffsign == 'negative' %}
+            <h3> You are <p class="text-warning">-{{diff}}</p> off your best</h3>
+            {% elif diffsign == 'positive' %}
+            <h3> You are <p class="text-success">+{{diff}}</p> over your best</h3>
+            {% else %}
+            <h3> You are <p class="text-muted">+{{diff}}</p> over your best</h3>
+            {% endif %}
+        {% endif %}
+
+        <h3> Take a break and when you are ready, <a href="exp">start the next session</a></h3>
+     </div>
+</div>
+
+{% if quiz %}
+    {% if sesscount > 1 %}
+    <h3>Session scores</h3>
+    <iframe src="/results_plot" marginwidth="0" marginheight="0" scrolling="no">
+    </iframe>
+    {% endif %}
+{% endif %}
+{% endblock %}

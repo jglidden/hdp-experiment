@@ -1,21 +1,10 @@
 {% extends "base.html" %}
 
 {% block instructions %}
-<iframe>
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <link href="../static/css/style.css" rel="stylesheet" type="text/css">
-            <link rel="stylesheet" href="../static/css/tree.css">
-        </head>
-        <body>
-            <div>
-                <p>Hi!</p>
-            </div>
-        </body>
-    </html>
-</iframe>
+<p class="lead"> Your task is to diagram the relationship between the concepts you have learned.</p>
+<p> For every concept, draw an arrow to every other concept which is contained within it. That is, <b>draw an arrow from concept A to concept B if "every B is an A"</b>.</p>
+
+<iframe src="/tree_instructions" marginwidth="0" marginheight="0" scrolling="no"></iframe>
 {% endblock %}
 
 {% block otherhead %}
@@ -26,11 +15,31 @@
 
 {% block content %}
 
+{% if new %}
+    <script type="text/javascript">
+        $(window).load(function(){
+            $('#instructions').modal('show');
+        });
+    </script>
+{% endif %}
+
+<div class="container">
+    <h2> End of session </h2>
+    <div class="alert alert-info">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <span class=glyphicon glyphicon-arrow-righ></span><p> A->B = A contains B</p>
+    </div>
+    <h3> Take a moment to construct the category hierarchy. </h3>
+</div>
+
 <script src="../static/js/tree.js"></script>
 <script src="../static/vendor/bootstrap.js"></script>
+<script type="text/javascript">
+    runTree();
+</script>
 
 <form form="display: none;" action="" method="POST">
     <input id="links" name="links" type="hidden">
-<button class="btn btn"  onclick="submitTree()">Submit</button>
+<button class="btn btn-primary"  onclick="submitTree()">Submit</button>
 
 {% endblock %}

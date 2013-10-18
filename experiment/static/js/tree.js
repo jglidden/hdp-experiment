@@ -1,6 +1,5 @@
 var width = 960,
     height = 520,
-    colors = d3.scale.category20(),
     circlesize = 24;
 
 
@@ -58,11 +57,14 @@ var nodes = [
     links = [];
 
 nodes.sort(function(a, b) {return 0.5 - Math.random()});
-var i;
-for (i = 0; i < nodes.length; i += 1) {
-    //nodes[i].fixed = true;
-    nodes[i].x = ((width - 100) / nodes.length) * i + 100;
-    nodes[i].y = height - 100;
+
+function resetNodes() {
+    var i;
+    for (i = 0; i < nodes.length; i += 1) {
+        //nodes[i].fixed = true;
+        nodes[i].x = ((width - 100) / nodes.length) * i + 100;
+        nodes[i].y = height - 100;
+    }
 }
 
 
@@ -86,7 +88,11 @@ function restart() {
     link.attr('class', 'link')
         .attr('d', drawpath)
         .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
-        .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; });
+        .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
+        .on('dblclick', function(d, i) {
+            links.splice(i, 1);
+            restart();});
+    link.exit().remove()
 
     node = node.data(nodes, function(d) { return d.id; });
     g = node.enter().append('svg:g');
@@ -97,44 +103,9 @@ function restart() {
     g.append('svg:circle')
         .attr('class', 'node')
         .attr('r', circlesize)
-        .style('fill', function(d) { return colors(d.id); })
-        .on('mousedown', function(d) {
-            if(!d3.event.shiftKey) return;
-            mousedown_node = d;
-            if(mousedown_node === selected_node) selected_node = null;
-            else selected_node = mousedown_node;
-            drag_line
-                .classed('hidden', false)
-                .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y)
-                .style('marker-end', 'url(#end-arrow)');
-            restart();
-        })
-        .on('mouseup', function(d) {
-            if(!mousedown_node) return;
-            mouseup_node = d;
-            if(mouseup_node === mousedown_node) { resetMouseVars(); return; }
-            var source, target;
-            if(mousedown_node.id < mouseup_node.id) {
-                source = mousedown_node;
-                target = mouseup_node;
-                direction = 'right';
-            } else{
-                source = mouseup_node;
-                target = mousedown_node;
-                direction = 'left';
-            }
-            var link;
-            link = links.filter(function(l) {
-                return (l.source === source && l.target === target);
-            })[0];
-            if(!link){
-                link = {source: source, target: target, left: false, right: false};
-                link[direction] = true;
-                links.push(link);
-            }
-            selected_node = null;
-            restart();
-        });
+        .style('fill', function(d) { return "DarkGray"; })
+        .on('mousedown', function(d) { onMouseDownNode(d, d3.event.shiftKey); })
+        .on('mouseup', function(d) { onMouseUpNode(d); });
 
     g.append('svg:text')
         .attr('x', 0)
@@ -142,6 +113,45 @@ function restart() {
         .attr('class', 'id')
         .text(function(d) { return d.name });
 
+}
+
+function onMouseDownNode(d, shiftkey) {
+    if(!shiftkey) return;
+    mousedown_node = d;
+    if(mousedown_node === selected_node) selected_node = null;
+    else selected_node = mousedown_node;
+    drag_line
+        .classed('hidden', false)
+        .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y)
+        .style('marker-end', 'url(#end-arrow)');
+    restart();
+}
+
+function onMouseUpNode(d) {
+    if(!mousedown_node) return;
+    mouseup_node = d;
+    if(mouseup_node === mousedown_node) { resetMouseVars(); return; }
+    var source, target;
+    if(mousedown_node.id < mouseup_node.id) {
+        source = mousedown_node;
+        target = mouseup_node;
+        direction = 'right';
+    } else{
+        source = mouseup_node;
+        target = mousedown_node;
+        direction = 'left';
+    }
+    var link;
+    link = links.filter(function(l) {
+        return (l.source === source && l.target === target);
+    })[0];
+    if(!link){
+        link = {source: source, target: target, left: false, right: false};
+        link[direction] = true;
+        links.push(link);
+    }
+    selected_node = null;
+    restart();
 }
 
 function drawpath(d) {
@@ -185,23 +195,34 @@ function dragmove(d) {
 }
 
 function keydown() {
-    if(d3.event.keyCode === 16) {
+    onKeyDown(d3.event.keyCode);
+}
+
+function onKeyDown(keycode) {
+    if(keycode === 16) {
         drag.on('drag', null);
         svg.classed('shift', true);
     }
 }
 
 function keyup() {
-    if(d3.event.keyCode === 16) {
+    onKeyUp(d3.event.keyCode);
+}
+
+function onKeyUp(keycode) {
+    if(keycode === 16) {
         drag.on('drag', dragmove);
         svg.classed('shift', false)
     }
 }
 
 function mousemove() {
-    if(!mousedown_node) return;
-    drag_line.attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + d3.mouse(this)[0] + ',' + d3.mouse(this)[1]);
+    onMouseMove(d3.mouse(this)[0], d3.mouse(this)[1]);
+}
 
+function onMouseMove(mouseX, mouseY) {
+    if(!mousedown_node) return;
+    drag_line.attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mouseX + ',' + mouseY);
     restart();
 }
 
@@ -210,12 +231,147 @@ function submitTree() {
     $('form').submit();
 }
 
-svg.on('mouseup', mouseup)
-   .on('mousedown', mousedown)
-   .on('mousemove', mousemove);
-d3.select(window)
-  .on('keydown', keydown)
-  .on('keyup', keyup);
-restart();
+function runTree() {
+    svg.on('mouseup', mouseup)
+       .on('mousedown', mousedown)
+       .on('mousemove', mousemove);
+    d3.select(window)
+      .on('keydown', keydown)
+      .on('keyup', keyup);
+    resetNodes();
+    restart();
+}
+
+function runInstructions(time_elapsed, text, cursor) {
+    resetNodes();
+    var moveNode = nodes[4];
+    var targetNode = nodes[5];
+    onMouseDownNode(moveNode, true);
+    onMouseUpNode(targetNode);
+    link.transition()
+        .attr('class', 'link hidden')
+        .delay(time_elapsed)
+        .duration(0);
+
+    text.transition()
+        .text('Click and drag to move concepts')
+        .delay(time_elapsed)
+        .duration(0);
+    cursor.transition()
+        .attr('x', 600)
+        .attr('y', 200)
+        .delay(time_elapsed)
+        .duration(0);
+    node.transition()
+        .attr('transform', function(d) {
+            return 'translate(' + d.x + ',' + d.y + ')';
+        })
+        .duration(0)
+        .delay(time_elapsed);
 
 
+    cursor.transition()
+        .attr('x', moveNode.x)
+        .attr('y', moveNode.y)
+        .duration(1000)
+        .delay(time_elapsed+100);
+
+    moveNode.x = moveNode.x + 100;
+    moveNode.y = moveNode.y - 300;
+    node.transition()
+        .attr('transform', function(d) {
+            return 'translate(' + d.x + ',' + d.y + ')';
+        })
+        .duration(2000)
+        .delay(time_elapsed+1200);
+    cursor.transition()
+        .attr('x', moveNode.x)
+        .attr('y', moveNode.y)
+        .duration(2000)
+        .delay(time_elapsed+1200);
+    drag_line.transition()
+        .attr('class', 'link dragline hidden')
+        .attr('d', 'M' + moveNode.x + ',' + moveNode.y + 'L' + moveNode.x + ',' + moveNode.y)
+        .style('marker-end', 'url(#end-arrow)')
+        .duration(0)
+        .delay(time_elapsed+1200);
+
+    text.transition()
+        .text('Hold shift to link concepts')
+        .duration(0)
+        .delay(time_elapsed+3300);
+    drag_line.transition()
+        .attr('class', 'link dragline')
+        .duration(0)
+        .delay(time_elapsed+3300)
+
+    cursor.transition()
+        .attr('x', targetNode.x)
+        .attr('y', targetNode.y)
+        .duration(2000)
+        .delay(time_elapsed+3400);
+    drag_line.transition()
+        .attr('class', 'link dragline')
+        .attr('d', 'M' + moveNode.x + ',' + moveNode.y + 'L' + targetNode.x + ',' + targetNode.y)
+        .style('marker-end', 'url(#end-arrow)')
+        .duration(2000)
+        .delay(time_elapsed+3400)
+    drag_line.transition()
+        .attr('class', 'link dragline hidden')
+        .duration(0)
+        .delay(time_elapsed+5400)
+
+    link.transition()
+        .attr('d', drawpath)
+        .delay(time_elapsed+5200)
+        .duration(0);
+
+    link.transition()
+        .attr('class', 'link')
+        .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
+        .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
+        .delay(time_elapsed+5400)
+        .duration(0);
+
+    cursor.transition()
+        .attr('x', (moveNode.x + targetNode.x)/2)
+        .attr('y', (moveNode.y + targetNode.y)/2)
+        .duration(2000)
+        .delay(time_elapsed+5600);
+    text.transition()
+        .text('Double click a link to delete it')
+        .delay(time_elapsed+7700)
+        .duration(0);
+    link.transition()
+        .attr('class', 'link hidden')
+        .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
+        .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
+        .delay(time_elapsed+8700)
+        .duration(0);
+}
+
+function instructTree() {
+    resetNodes();
+    restart();
+    var i = 1;
+    var time_elapsed = 0;
+    var text = svg.append('text')
+        .attr('class', 'instructions')
+        .attr('x', 600)
+        .attr('y', 50)
+        .text('Click and drag to move concepts');
+
+    var cursor = svg.append('image')
+        .attr('xlink:href', "/static/cursor.png")
+        .attr('height', 24)
+        .attr('width', 24)
+        .attr('x', 600)
+        .attr('y', 200);
+
+    runInstructions(time_elapsed, text, cursor);
+    while(i<20) {
+        time_elapsed = 9700 * i;
+        runInstructions(time_elapsed, text, cursor);
+        i += 1;
+    }
+}

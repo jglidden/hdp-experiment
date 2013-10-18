@@ -3,8 +3,8 @@ function httpGet() {
 }
 
 
-function nextStimuli() {
-    setTimeout(httpGet, 1000);
+function nextStimuli(wait) {
+    setTimeout(httpGet, wait);
 }
 
 function submitResponse(res) {

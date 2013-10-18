@@ -41,3 +41,9 @@ text.id {
     text-anchor: middle;
     font-weight: bold;
 }
+
+.modal-content {
+    width: 1000px; /* SET THE WIDTH OF THE MODAL */
+    margin-left: -200px;
+}
+

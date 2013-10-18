@@ -7,35 +7,63 @@
 {% endblock %}
 
 {% block instructions %}
-<p>Respond yes if the label is appropriate for the image, otherwise respond no.</p>
+    <p class="lead"> Imagine that you are an anthropologist who has just landed on a previously undiscovered island. </p>
+    <p>The inhabitants speak a strange language consisting of three letter words. Your goal is to characterize some of the concepts in this language by asking them questions about series of objects around the island. </p>
+    <p> In the following pages: <p>
+    <ul>
+        <li> A <em>concept</em> is a  three letter word like this: <big><strong>con</big></strong></li>
+        <li> An <em>object</em> is an image like this: <img src={{img}} height=200 width=200</li>
+    </ul>
+    <p> On each page you will be shown an object and a concept. You will be asked whether the displayed object is an example of the indicated concept. At first this will be difficult, but as you gather information, your performance will improve. Your ultimate goal is to identify the hierarchical relationship between concepts.</p>
+    <p> The task will be divided into <em>sessions</em>. Each session is divided into {{block_count}} <em>blocks</em>. Each block is divided into {{block_size}} <em>items</em>. After each block you may take a 5 minute break. Your block and item progress is displayed in the lower right corner of the screen. You may complete a maximum of one session per day. At the end of each session you will be asked to diagram the relationship between concepts. The task ends when a sufficient accuracy is achieved.</p>
 {% endblock %}
 
 {% block content %}
 
+{% if new %}
+    <script type="text/javascript">
+        $(window).load(function(){
+            $('#instructions').modal('show');
+        });
+    </script>
+{% endif %}
 <script src="../static/js/exp.js"></script>
 <div class="main">
     <div class="span12">
+        {% if quiz %}
+            <div class="alert alert-info">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <strong>Keyboard shortcuts</strong>
+                <kbd>a</kdb> - respond yes; <kdb>l</kdb> - respond no
+            </div>
+        {% endif %}
         <img src={{img}}>
-        <p><br>Is this a <big><strong>{{label}}</big></h3>?</p>
 
-        {% if res == '1' %}
-            <button class="btn">Yes</button>
-        {% elif res == '0' %}
-            <button class="btn" >No</button>
+        {% if quiz %}
+            <p>Is this a <big><strong>{{label}}</big>?</p>
+
+            {% if res == '1' %}
+                <button class="btn">Yes</button>
+            {% elif res == '0' %}
+                <button class="btn" >No</button>
+            {% else %}
+                <form id="resform" form="display: none;" action="" method="POST">
+                    <input type="hidden" name="img" value={{ img }}>
+                    <input type="hidden" name="label" value={{ label }}>
+                    <input type="hidden" id="resfield" name="res">
+                <button class="btn" onclick="submitResponse(1)">Yes</button>
+                <button class="btn" onclick="submitResponse(0)">No</button>
+                </form>
+            {% endif %}
         {% else %}
-            <form id="resform" form="display: none;" action="" method="POST">
-                <input type="hidden" name="img" value={{ img }}>
-                <input type="hidden" name="label" value={{ label }}>
-                <input type="hidden" id="resfield" name="res">
-            <button class="btn" onclick="submitResponse(1)">Yes</button></a>
-            <button class="btn" onclick="submitResponse(0)">No</button>
-            </form>
+            <p>This is a <big><strong>{{label}}</big></strong>.</p>
+            <button class="btn" onclick="submitResponse(1)">Next</button>
         {% endif %}
 
         {% if correct == True %}
         <h3 class="text-success"><strong>Correct!</strong></h3>
         <script type="text/javascript">
-            nextStimuli();
+            nextStimuli(1000);
         </script>
 
         {% elif correct == False %}
