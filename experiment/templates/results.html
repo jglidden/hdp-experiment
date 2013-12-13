@@ -6,11 +6,11 @@
         <h2> You have reached the end of this session </h2>
         {% if quiz %}
             {% if diffsign == 'negative' %}
-            <h3> You are <p class="text-warning">-{{diff}}</p> off your best</h3>
+            <h3> You are <p class="text-warning">-{{diff}}</p> off your best session</h3>
             {% elif diffsign == 'positive' %}
-            <h3> You are <p class="text-success">+{{diff}}</p> over your best</h3>
+            <h3> You are <p class="text-success">+{{diff}}</p> over your best session</h3>
             {% else %}
-            <h3> You are <p class="text-muted">+{{diff}}</p> over your best</h3>
+            <h3> You are <p class="text-muted">+{{diff}}</p> over your best session</h3>
             {% endif %}
         {% endif %}
 

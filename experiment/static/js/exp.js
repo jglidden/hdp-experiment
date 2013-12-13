@@ -23,7 +23,13 @@ function keyup() {
     else if (d3.event.keyCode === 76) {
         submitResponse(0);
     }
+
+    //FIXME
+    else if (d3.event.keyCode === 32) {
+        httpGet();
+    }
 }
+
 
 d3.select(window)
     .on('keyup', keyup);

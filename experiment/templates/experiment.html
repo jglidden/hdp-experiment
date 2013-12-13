@@ -30,13 +30,15 @@
 <script src="../static/js/exp.js"></script>
 <div class="main">
     <div class="span12">
-        {% if quiz %}
             <div class="alert alert-info">
                 <button type="button" class="close" data-dismiss="alert">&times;</button>
                 <strong>Keyboard shortcuts</strong>
-                <kbd>a</kdb> - respond yes; <kdb>l</kdb> - respond no
+                {% if quiz %}
+                    <kbd>a</kdb> - respond yes; <kdb>l</kdb> - respond no
+                {% else %}
+                    <kbd>space</kdb> next
+                {% endif %}
             </div>
-        {% endif %}
         <img src={{img}}>
 
         {% if quiz %}
@@ -55,22 +57,23 @@
                 <button class="btn" onclick="submitResponse(0)">No</button>
                 </form>
             {% endif %}
+
+            {% if correct == True %}
+            <h3 class="text-success"><strong>Correct!</strong></h3>
+            <script type="text/javascript">
+                nextStimuli(1000);
+            </script>
+
+            {% elif correct == False %}
+            <h3 class="text-warning"><strong>Incorrect!</strong></h3>
+            <script type="text/javascript">
+                nextStimuli(1000);
+            </script>
+            {% endif %}
+
         {% else %}
             <p>This is a <big><strong>{{label}}</big></strong>.</p>
-            <button class="btn" onclick="submitResponse(1)">Next</button>
-        {% endif %}
-
-        {% if correct == True %}
-        <h3 class="text-success"><strong>Correct!</strong></h3>
-        <script type="text/javascript">
-            nextStimuli(1000);
-        </script>
-
-        {% elif correct == False %}
-        <h3 class="text-warning"><strong>Incorrect!</strong></h3>
-        <script type="text/javascript">
-            nextStimuli();
-        </script>
+            <a href="/exp"><button class="btn">Next</button></a>
         {% endif %}
         
 </div>

@@ -314,6 +314,7 @@ def exp():
         return redirect(url_for('tree'))
 
     if current_user.get_break():
+        current_user.finish_block()
         current_user.set_break(False)
         part = current_user.participant
         if not QUIZ:
@@ -321,15 +322,14 @@ def exp():
         best_session = current_user.get_best()
         score = part.current_session.correct
         block_count = len(part.current_session.blocks)
-        best_blocks = sorted([b for b in best_session.blocks if b.finished_at], key=lambda b: b.finished_at)[:block_count]
+        best_blocks = sorted([b for b in best_session.blocks if b.finished_at], key=lambda b: b.finished_at)[:block_count+1]
         if not best_blocks:
             diffsign = 'equal'
             diff = 0
         else:
-            diffbest = score - sum([b.correct for b in best_blocks[:block_count]])
+            diffbest = score - sum([b.correct for b in best_blocks])
             diff = abs(diffbest)
             diffsign = get_diffsign(diffbest)
-        current_user.finish_block()
         return render_template(
                 'finish_block.html',
                 quiz=True,
@@ -363,6 +363,7 @@ def exp():
             block_count=BLOCKS,
             new=new)
     else:
+        current_user.advance_pair()
         return render_template(
             'experiment.html',
             quiz=False,
