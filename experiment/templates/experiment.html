@@ -20,6 +20,34 @@
 
 {% block content %}
 
+{% if preview %}
+<div id=preview class="modal fade" aria-hidden="true" role="dialog" tabindex=-1>
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+            <h3>This is preview mode.</h3>
+            <p>Please click 'Accept HIT' to start this HIT</p>
+            <h3>Instructions</h3>
+            <div class="well">
+                <p>This is a multi-day experiment testing human categorization learning.</p>
+                <p>You will be asked to do the following:</p>
+                <ul>
+                    <li>Learn the categorizations of a collection of objects by looking at a series of images.</li>
+                    <li>Construct a visual representation of how those categories relate to each other.</li>
+                </ul>
+                <p>The task will take place over [FIXME] five days with one [FIXME] one-hour session each day. Payment will be rewarded after each hour session.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script type="text/javascript">
+    $(window).load(function(){
+        $('#preview').modal('show');
+    });
+</script>
+{% endif %}
+
 {% if new %}
     <script type="text/javascript">
         $(window).load(function(){

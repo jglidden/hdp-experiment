@@ -12,9 +12,28 @@ mtc = MTurkConnection(
         host=HOST)
 
 
+#
+#overview = Overview()
+#overview.append_field('Title', 'Psychology Experiment')
+#overview.append(FormattedContent('<a target="_blank"'
+#                                 ' href="http://murmuring-inlet-9267.herokuapp.com/">'
+#                                 ' Click me</a>'))
+#
+#question_content = QuestionContent()
+#question_content.append_field('Title','Your personal comments')
+# 
+#fta = FreeTextAnswer()
+# 
+#question = Question(identifier="comments",
+#              content=question_content,
+#              answer_spec=AnswerSpecification(fta))
+#
+#question_form = QuestionForm()
+#question_form.append(overview)
+#question_form.append(question)
 question_form = ExternalQuestion(external_url='https://murmuring-inlet-9267.herokuapp.com/', frame_height=800)
 keywords=['boto', 'test', 'doctest']
-create_hit_rs = mtc.create_hit(question=question_form, max_assignments=1,title="Boto External Question Test", keywords=keywords,reward = 0.05, duration=60*6,approval_delay=60*60)
+create_hit_rs = mtc.create_hit(question=question_form, max_assignments=1,title="Categorization Experiment", keywords=keywords,reward = 0.05, duration=60*6,approval_delay=60*60)
 assert(create_hit_rs.status == True)
 
 

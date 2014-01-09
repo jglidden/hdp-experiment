@@ -8,6 +8,7 @@ from flask.ext.login import (LoginManager,
                              logout_user,
                              current_user)
 from flask.ext.sqlalchemy import SQLAlchemy
+from boto.mturk.connection import MTurkConnection
 import logging
 import uuid
 import datetime
@@ -15,6 +16,14 @@ import datetime
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
+app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
+app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
+
+mtc = MTurkConnection(
+        aws_access_key_id=app.config['ACCESS_ID'],
+        aws_secret_access_key=app.config['SECRET_KEY'],
+        host=app.config['AWS_HOST'])
 db = SQLAlchemy(app)
 
 from logging import StreamHandler
@@ -247,7 +256,20 @@ def create_user(username):
 
 @app.route('/')
 def root():
-    return redirect(url_for('user'))
+    assignment_id = request.args.get('assignmentId')
+    hit_id = request.args.get('hitId')
+    if not assignment_id or assignment_id == 'ASSIGNMENT_ID_NOT_AVAILABLE':
+        pass
+    else:
+        assignment = mtc.get_assignment(assignment_id)
+        worker_id = assignment.WorkerId
+        user = get_user_by_username(worker_id)
+        if user:
+            login_user(user, remember=True)
+        else:
+            create_user(worker_id)
+            login_user(user, remember=True)
+    return redirect(url_for('exp'))
 
 
 def get_diffsign(diffbest):
@@ -280,11 +302,11 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(request.args.get('next') or url_for('login'))
+#@app.route('/logout')
+#@login_required
+#def logout():
+#    logout_user()
+#    return redirect(request.args.get('next') or url_for('login'))
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -303,11 +325,15 @@ def register():
 
 
 @app.route('/exp', methods=['GET', 'POST'])
-@login_required
 def exp():
+    if not current_user.is_authenticated():
+        return render_template(
+                'experiment.html',
+                img=experiment.ALL_IMGS[0],
+                label=experiment.LABELS_BY_CAT['1'][0],
+                preview=True)
     new = True if not current_user.is_debriefed() else None
     current_user.set_debriefed(True)
-    print current_user.participant.sessions
     user_id = current_user.get_username()
     if current_user.participant.current_session.img_index == len(experiment.ALL_IMGS):
         current_user.finish_session()
