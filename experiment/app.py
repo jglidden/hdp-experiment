@@ -259,17 +259,12 @@ def root():
     worker_id = request.args.get('workerId')
     assignment_id = request.args.get('assignmentId')
     hit_id = request.args.get('hitId')
-    #if not assignment_id or assignment_id == 'ASSIGNMENT_ID_NOT_AVAILABLE':
-    #    pass
-    #else:
     if worker_id:
-        #assignment = mtc.get_assignment(assignment_id)
-        #worker_id = assignment.WorkerId
         user = get_user_by_username(worker_id)
         if user:
             login_user(user, remember=True)
         else:
-            create_user(worker_id)
+            user = create_user(worker_id)
             login_user(user, remember=True)
     return redirect(url_for('exp'))
 
