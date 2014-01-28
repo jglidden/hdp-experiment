@@ -263,8 +263,8 @@ def root():
     #    pass
     #else:
     if worker_id:
-        assignment = mtc.get_assignment(assignment_id)
-        worker_id = assignment.WorkerId
+        #assignment = mtc.get_assignment(assignment_id)
+        #worker_id = assignment.WorkerId
         user = get_user_by_username(worker_id)
         if user:
             login_user(user, remember=True)
