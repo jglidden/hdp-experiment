@@ -256,11 +256,13 @@ def create_user(username):
 
 @app.route('/')
 def root():
+    worker_id = request.args.get('workerId')
     assignment_id = request.args.get('assignmentId')
     hit_id = request.args.get('hitId')
-    if not assignment_id or assignment_id == 'ASSIGNMENT_ID_NOT_AVAILABLE':
-        pass
-    else:
+    #if not assignment_id or assignment_id == 'ASSIGNMENT_ID_NOT_AVAILABLE':
+    #    pass
+    #else:
+    if worker_id:
         assignment = mtc.get_assignment(assignment_id)
         worker_id = assignment.WorkerId
         user = get_user_by_username(worker_id)
