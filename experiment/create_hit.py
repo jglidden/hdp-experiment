@@ -31,9 +31,9 @@ mtc = MTurkConnection(
 #question_form = QuestionForm()
 #question_form.append(overview)
 #question_form.append(question)
-question_form = ExternalQuestion(external_url='https://murmuring-inlet-9267.herokuapp.com/', frame_height=800)
+question_form = ExternalQuestion(external_url='https://cocosci-cat-789.herokuapp.com/', frame_height=800)
 keywords=['boto', 'test', 'doctest']
-create_hit_rs = mtc.create_hit(question=question_form, max_assignments=1,title="Categorization Experiment", keywords=keywords,reward = 0.05, duration=60*6,approval_delay=60*60)
+create_hit_rs = mtc.create_hit(question=question_form, max_assignments=10,title="Categorization Experiment", keywords=keywords,reward = 0.05, duration=60*6,approval_delay=60*60)
 assert(create_hit_rs.status == True)
 
 
