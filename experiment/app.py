@@ -1,5 +1,5 @@
 import os
-from experiment import exp as experiment
+from experiment import exp as exper
 from flask import *
 from flask.ext.login import (LoginManager,
                              login_required,
@@ -35,8 +35,14 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 
 QUIZ = int(os.environ.get('COCO_QUIZ', '1')) != 0
-BLOCKS = 3
-BLOCKSIZE = len(experiment.ALL_IMGS)/BLOCKS
+DEBUG = os.environ.get('DEBUG_EXPERIMENT')
+if DEBUG:
+    IMG_PER_SESSION = 6
+    BLOCKS = 2
+else:
+    IMG_PER_SESSION = 200
+    BLOCKS = 10
+BLOCKSIZE = IMG_PER_SESSION/BLOCKS
 USERS = {}
 
 # Database models
@@ -162,8 +168,7 @@ class User(UserMixin):
     def get_current_pair(self):
         current_session = self.participant.current_session
         img_index = current_session.img_index
-        img = experiment.ALL_IMGS[img_index]
-        label = experiment.gen_label(img)
+        img, label = exper.gen_pair()
         block_index = img_index / BLOCKSIZE + 1
         local_index = img_index % BLOCKSIZE + 1
         return label, img, local_index, block_index
@@ -326,13 +331,13 @@ def exp():
     if not current_user.is_authenticated():
         return render_template(
                 'experiment.html',
-                img=experiment.ALL_IMGS[0],
-                label=experiment.LABELS_BY_CAT['1'][0],
+                img=exper.ALL_IMGS[0],
+                label=exper.LABELS_BY_CAT['1'][0],
                 preview=True)
     new = True if not current_user.is_debriefed() else None
     current_user.set_debriefed(True)
     user_id = current_user.get_username()
-    if current_user.participant.current_session.img_index == len(experiment.ALL_IMGS):
+    if current_user.participant.current_session.img_index == IMG_PER_SESSION:
         current_user.finish_session()
         return redirect(url_for('tree'))
 
@@ -368,7 +373,7 @@ def exp():
         if QUIZ:
             input = request.form['res'] == '1'
             response = request.form['res']
-            actual = experiment.check_pair(label, img)
+            actual = exper.check_pair(label, img)
             correct = (input == actual)
             current_user.update_correct(correct)
         current_user.advance_pair()

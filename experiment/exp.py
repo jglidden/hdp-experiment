@@ -16,7 +16,6 @@ ALL_CATS = set([i for cat in EXPERIMENT_KEY.values() for i in cat])
 ALL_IMGS = [os.path.join(STIM_PREFIX, os.path.split(fname)[1])
             for fname in glob(os.path.join(STIM_DIR, '*.png')) if 'prototype' not in fname]
 random.shuffle(ALL_IMGS)
-ALL_IMGS = ALL_IMGS[:6]
 TRUE_LINKS = []
 
 def img_to_cat(img):
