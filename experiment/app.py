@@ -168,7 +168,7 @@ class User(UserMixin):
     def get_current_pair(self):
         current_session = self.participant.current_session
         img_index = current_session.img_index
-        img, label = exper.gen_pair()
+        label, img = exper.gen_pair()
         block_index = img_index / BLOCKSIZE + 1
         local_index = img_index % BLOCKSIZE + 1
         return label, img, local_index, block_index
