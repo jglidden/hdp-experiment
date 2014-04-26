@@ -5,3 +5,4 @@ Flask-sqlalchemy
 gunicorn
 boto
 MySQL-python
+markdown
