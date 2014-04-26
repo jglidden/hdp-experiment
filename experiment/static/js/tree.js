@@ -1,44 +1,51 @@
-var width = 960,
-    height = 520,
+var margin = {top: 60, right: 60, bottom: 80, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
     circlesize = 24;
 
+var svg,
+    drag_line,
+    link,
+    node;
 
-var svg = d3.select('#content')
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height)
+function setUpPage(margin, width, height) {
+    svg = d3.select("#content").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var drag_line = svg.append('svg:path')
-    .attr('class', 'link dragline hidden')
-    .attr('d', 'M0,0L0,0');
+    drag_line = svg.append('svg:path')
+        .attr('class', 'link dragline hidden')
+        .attr('d', 'M0,0L0,0');
 
-var link = svg.append('svg:g').selectAll('path')
+    link = svg.append('svg:g').selectAll('path')
     node = svg.append('svg:g').selectAll('g');
 
-// define arrow markers for graph links
-svg.append('svg:defs').append('svg:marker')
-    .attr('id', 'end-arrow')
-    .attr('viewBox', '0 -5 10 10')
-    .attr('refX', 6)
-    .attr('markerWidth', 3)
-    .attr('markerHeight', 3)
-    .attr('orient', 'auto')
-  .append('svg:path')
-    .attr('d', 'M0,-5L10,0L0,5')
-    .attr('fill', '#000');
+    // define arrow markers for graph links
+    svg.append('svg:defs').append('svg:marker')
+        .attr('id', 'end-arrow')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 6)
+        .attr('markerWidth', 3)
+        .attr('markerHeight', 3)
+        .attr('orient', 'auto')
+      .append('svg:path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', '#000');
 
 
-svg.append('svg:defs').append('svg:marker')
-    .attr('id', 'start-arrow')
-    .attr('viewBox', '0 -5 10 10')
-    .attr('refX', 4)
-    .attr('markerWidth', 3)
-    .attr('markerHeight', 3)
-    .attr('orient', 'auto')
-  .append('svg:path')
-    .attr('d', 'M10,-5L0,0L10,5')
-    .attr('fill', '#000');
-
+    svg.append('svg:defs').append('svg:marker')
+        .attr('id', 'start-arrow')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 4)
+        .attr('markerWidth', 3)
+        .attr('markerHeight', 3)
+        .attr('orient', 'auto')
+      .append('svg:path')
+        .attr('d', 'M10,-5L0,0L10,5')
+        .attr('fill', '#000');
+}
 
 var nodes = [
     {id: 1, name: 'hob'},
@@ -66,6 +73,71 @@ function resetNodes() {
         nodes[i].y = height - 100;
     }
 }
+
+function resetLinks(defaultLinks) {
+    var i;
+    for (i = 0; i < defaultLinks.length; i += 1) {
+        source = nodes[defaultLinks[i].source]
+        target = nodes[defaultLinks[i].target]
+        newLink = {source: source, target: target, right: true, left: false}
+        links.push(newLink)
+    }
+}
+
+function prettyTree(defaultLinks, h, w) {
+    // from http://bl.ocks.org/mbostock/2949981
+    var nodesByName = {};
+
+    // Create nodes for each unique source and target.
+    defaultLinks.forEach(function(l) {
+    var parent = l.source = nodeByName(l.source),
+        child = l.target = nodeByName(l.target);
+    if (parent.children) parent.children.push(child);
+    else parent.children = [child];
+    });
+
+
+    console.log(defaultLinks)
+    function nodeByName(name) {
+    return nodesByName[name] || (nodesByName[name] = {name: name});
+    }
+
+    
+    var trees = [];
+    var x;
+    var y;
+    nodes.forEach(function(newNode) {
+        if (!newNode.hasOwnProperty('x')) {
+            if (newNode.id > defaultLinks.length) {
+                newNode.x = x;
+                newNode.y = y;
+                var realNodes = [newNode];
+            }
+            else {
+                var tree = d3.layout.tree()
+                    .size([w, h]);
+                var treeNodes = tree.nodes(defaultLinks[newNode.id].source);
+                console.log(defaultLinks)
+                var realNodes = [];
+                treeNodes.forEach(function(n) {
+                    realNode = nodes[n.name]
+                    realNode.x = n.x 
+                    realNode.y = n.y
+                    realNodes.push(realNode)
+                x = nodes[newNode.id].x;
+                y = nodes[newNode.id].y;
+                })
+            }
+            trees.push(realNodes);
+        }
+    })
+    for (i = 0; i < trees.length; i += 1) {
+        trees[i].forEach(function(n) {
+            n.x = n.x/trees.length + w * i / trees.length
+        })
+    }
+}
+
 
 
 var drag = d3.behavior.drag()
@@ -231,13 +303,18 @@ function submitTree() {
     $('form').submit();
 }
 
-function runTree() {
+function configureMouse() {
     svg.on('mouseup', mouseup)
        .on('mousedown', mousedown)
        .on('mousemove', mousemove);
     d3.select(window)
       .on('keydown', keydown)
       .on('keyup', keyup);
+}
+
+function runTree() {
+    setUpPage(margin, width, height);
+    configureMouse();
     resetNodes();
     restart();
 }
@@ -374,4 +451,17 @@ function instructTree() {
         runInstructions(time_elapsed, text, cursor);
         i += 1;
     }
+}
+
+function showExample(id, h, w) {
+    d3.json("/example_taxonomy/" + String(id), function(error, data) {
+      if (error) return;
+      setUpPage(margin, w, h);
+      nodes = data.nodes;
+      defaultLinks = data.links;
+      resetLinks(defaultLinks);
+      prettyTree(defaultLinks, h, w);
+      configureMouse();
+      restart();
+    });
 }

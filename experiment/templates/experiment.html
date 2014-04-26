@@ -1,21 +1,14 @@
 {% extends "base.html" %}
 
 {% block otherhead %}
+<link rel="stylesheet" href="../static/css/tree.css">
 <style type="text/css">
     .hidden  { display: none; }
 </style>
 {% endblock %}
 
 {% block instructions %}
-    <p class="lead"> Imagine that you are an anthropologist who has just landed on a previously undiscovered island. </p>
-    <p>The inhabitants speak a strange language consisting of three letter words. Your goal is to characterize some of the concepts in this language by asking them questions about series of objects around the island. </p>
-    <p> In the following pages: <p>
-    <ul>
-        <li> A <em>concept</em> is a  three letter word like this: <big><strong>con</big></strong></li>
-        <li> An <em>object</em> is an image like this: <img src={{img}} height=200 width=200</li>
-    </ul>
-    <p> On each page you will be shown an object and a concept. You will be asked whether the displayed object is an example of the indicated concept. At first this will be difficult, but as you gather information, your performance will improve. Your ultimate goal is to identify the hierarchical relationship between concepts.</p>
-    <p> The task will be divided into <em>sessions</em>. Each session is divided into {{block_count}} <em>blocks</em>. Each block is divided into {{block_size}} <em>items</em>. After each block you may take a 5 minute break. Your block and item progress is displayed in the lower right corner of the screen. You may complete a maximum of one session per day. At the end of each session you will be asked to diagram the relationship between concepts. The task ends when a sufficient accuracy is achieved.</p>
+    <iframe src="/experiment_instructions/1" marginwidth="0" marginheight="0" scrolling="no"></iframe>
 {% endblock %}
 
 {% block content %}

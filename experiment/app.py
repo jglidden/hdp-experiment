@@ -12,6 +12,7 @@ from boto.mturk.connection import MTurkConnection
 import logging
 import uuid
 import datetime
+import markdown
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
@@ -19,6 +20,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
 app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
 app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
+BASEPATH = os.path.dirname(__file__)
 
 mtc = MTurkConnection(
         aws_access_key_id=app.config['ACCESS_ID'],
@@ -418,6 +420,21 @@ def tree():
 def tree_instructions():
     return render_template('tree_instructions.html')
 
+@app.route('/experiment_instructions/<pageno>', methods=['GET'])
+@login_required
+def experiment_instruction(pageno):
+    pageno=int(pageno)
+    nextpage = None
+    if pageno < 6:
+        nextpage = pageno + 1
+    return render_template('experiment_instructions.html', pageno=pageno, nextpage=nextpage)
+
+@app.route('/example_taxonomy/<id>', methods=['GET'])
+def example_taxonomy(id):
+    try:
+        return exper.load_example(id)
+    except IOError:
+        abort(404)
 
 @app.route('/results', methods=['GET'])
 @login_required
@@ -462,4 +479,4 @@ def results_plot():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

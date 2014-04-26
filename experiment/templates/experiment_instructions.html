@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="../static/vendor/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/tree.css">
+    <script src="../static/vendor/d3.v3.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+    {% include "instructions/intro-{}.html".format(pageno) %}
+    </div>
+    {% if 1 < pageno|int() and pageno|int() < 6 %}
+    <div id="content">
+    <script src="../static/js/tree.js"></script>
+    <script>
+        showExample({{pageno}}, 200, 960);
+    </script>
+    </div>
+    {% endif %}
+    <div class="container">
+    <a href="/experiment_instructions/{{nextpage}}"><button class="btn btn-primary">Continue</button></a>
+    </div>
+</body>
+</html>

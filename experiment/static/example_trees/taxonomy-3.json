@@ -1,0 +1,86 @@
+{
+    "nodes": [
+        {
+            "id": 0, 
+            "name": "Desert"
+        }, 
+        {
+            "id": 1, 
+            "name": "Apple pie"
+        }, 
+        {
+            "id": 2, 
+            "name": "Ice cream"
+        }, 
+        {
+            "id": 3, 
+            "name": "Tiramisu"
+        }, 
+        {
+            "id": 4, 
+            "name": "Chocolate"
+        }, 
+        {
+            "id": 5, 
+            "name": "Strawberry"
+        }, 
+        {
+            "id": 6, 
+            "name": "Wine"
+        }, 
+        {
+            "id": 7, 
+            "name": "Red wine"
+        }, 
+        {
+            "id": 8, 
+            "name": "White wine"
+        }, 
+        {
+            "id": 9, 
+            "name": "Cabernet Sauvignon"
+        }, 
+        {
+            "id": 10, 
+            "name": "Chardonnay"
+        }
+    ], 
+    "links": [
+        {
+            "source": 0, 
+            "target": 1
+        }, 
+        {
+            "source": 0, 
+            "target": 2
+        }, 
+        {
+            "source": 0, 
+            "target": 3
+        }, 
+        {
+            "source": 2, 
+            "target": 4
+        }, 
+        {
+            "source": 2, 
+            "target": 5
+        }, 
+        {
+            "source": 6, 
+            "target": 7
+        }, 
+        {
+            "source": 6, 
+            "target": 8
+        }, 
+        {
+            "source": 7, 
+            "target": 9
+        }, 
+        {
+            "source": 8, 
+            "target": 10
+        }
+    ]
+}

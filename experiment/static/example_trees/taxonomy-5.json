@@ -1,0 +1,30 @@
+{
+    "nodes": [
+        {
+            "id": 0, 
+            "name": "Vegetable"
+        }, 
+        {
+            "id": 1, 
+            "name": "Asparagus"
+        }, 
+        {
+            "id": 2, 
+            "name": "Aspirin"
+        }, 
+        {
+            "id": 3, 
+            "name": "Architect"
+        }, 
+        {
+            "id": 4, 
+            "name": "Violin"
+        }
+    ], 
+    "links": [
+        {
+            "source": 0, 
+            "target": 1
+        }
+    ]
+}

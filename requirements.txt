@@ -4,3 +4,4 @@ Flask-sqlalchemy
 psycopg2
 gunicorn
 boto
+markdown
