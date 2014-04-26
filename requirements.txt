@@ -1,6 +1,7 @@
 Flask
 Flask-login
 Flask-sqlalchemy
-psycopg2
+#psycopg2
 gunicorn
 boto
+MySQL-python

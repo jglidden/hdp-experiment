@@ -8,7 +8,7 @@ from flask.ext.login import (LoginManager,
                              logout_user,
                              current_user)
 from flask.ext.sqlalchemy import SQLAlchemy
-from boto.mturk.connection import MTurkConnection
+#from boto.mturk.connection import MTurkConnection
 import logging
 import uuid
 import datetime
@@ -16,14 +16,14 @@ import datetime
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
-app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
-app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
+#app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
+#app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
+#app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
 
-mtc = MTurkConnection(
-        aws_access_key_id=app.config['ACCESS_ID'],
-        aws_secret_access_key=app.config['SECRET_KEY'],
-        host=app.config['AWS_HOST'])
+#mtc = MTurkConnection(
+#        aws_access_key_id=app.config['ACCESS_ID'],
+#        aws_secret_access_key=app.config['SECRET_KEY'],
+#        host=app.config['AWS_HOST'])
 db = SQLAlchemy(app)
 
 from logging import StreamHandler
