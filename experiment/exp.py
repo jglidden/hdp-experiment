@@ -95,6 +95,6 @@ def process_links(links):
     return processed_links
 
 def load_example(id):
-    return open(os.path.join(SCRIPTDIR, 'static/example_trees', 'taxonomy-{}.json'.format(id))).read()
+    return open(os.path.join(SCRIPTDIR, 'static/example_trees', 'taxonomy-{0}.json'.format(id))).read()
             
 STIM_DIR = os.path.join(SCRIPTDIR, STIM_PREFIX)

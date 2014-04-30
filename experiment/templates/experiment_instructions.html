@@ -8,7 +8,7 @@
 
 <body>
     <div class="container">
-    {% include "instructions/intro-{}.html".format(pageno) %}
+    {% include "instructions/intro-{0}.html".format(pageno) %}
     </div>
     {% if 1 < pageno|int() and pageno|int() < 6 %}
     <div id="content">
