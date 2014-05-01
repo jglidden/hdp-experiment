@@ -79,9 +79,7 @@ class Participant(db.Model):
         self.debriefed = False
         self.tree_debriefed = False
         self.on_break = False
-        new_session = Session(self)
-        self.sessions.append(new_session)
-        self.current_session = new_session
+        self.current_session = None 
 
     def __repr__(self):
         return '<Participant %r>' %self.username
@@ -100,8 +98,11 @@ class Session(db.Model):
     current_block_id = db.Column(db.String(128), db.ForeignKey('block.id'))
     created_at = db.Column(db.DateTime)
     finished_at = db.Column(db.DateTime)
+    assignment_id = db.Column(db.String(128))
+    submit_to = db.Column(db.String(128))
+    hit_id = db.Column(db.String(128))
 
-    def __init__(self, participant):
+    def __init__(self, participant, assignment_id, submit_to, hit_id):
         self.id = str(uuid.uuid4())
         self.created_at = datetime.datetime.now()
         self.session_participant = participant
@@ -111,6 +112,9 @@ class Session(db.Model):
         new_block = Block(self)
         self.blocks.append(new_block)
         self.current_block = new_block
+        self.assignment_id = assignment_id
+        self.submit_to = submit_to
+        self.hit_id = hit_id
 
 
 class Block(db.Model):
@@ -167,6 +171,15 @@ class User(UserMixin):
     def check_password(self, password):
         return True
 
+    def get_current_assignment_id(self):
+        return self.participant.current_session.assignment_id
+
+    def get_submit_to(self):
+        return self.participant.current_session.submit_to
+
+    def get_current_session(self):
+        return self.participant.current_session
+
     def get_current_pair(self):
         current_session = self.participant.current_session
         img_index = current_session.img_index
@@ -193,8 +206,8 @@ class User(UserMixin):
             current_session.current_block.incorrect += 1
         db.session.commit()
 
-    def create_new_session(self):
-        new_session = Session(self.participant)
+    def create_new_session(self, assignment_id, submit_to, hit_id):
+        new_session = Session(self.participant, assignment_id, submit_to, hit_id)
         self.participant.sessions.append(new_session)
         self.participant.current_session = new_session
         db.session.add(new_session)
@@ -202,7 +215,7 @@ class User(UserMixin):
 
     def finish_session(self):
         self.participant.current_session.finished_at = datetime.datetime.now()
-        self.create_new_session()
+        self.participant.current_session = None
         self.participant.on_break = False
         db.session.commit()
 
@@ -266,6 +279,7 @@ def root():
     worker_id = request.args.get('workerId')
     assignment_id = request.args.get('assignmentId')
     hit_id = request.args.get('hitId')
+    submit_to = request.args.get('turkSubmitTo')
     if worker_id:
         user = get_user_by_username(worker_id)
         if user:
@@ -273,6 +287,8 @@ def root():
         else:
             user = create_user(worker_id)
             login_user(user, remember=True)
+        if user.get_current_session() == None:
+            user.create_new_session(assignment_id, submit_to, hit_id)
     return redirect(url_for('exp'))
 
 
@@ -340,7 +356,6 @@ def exp():
     current_user.set_debriefed(True)
     user_id = current_user.get_username()
     if current_user.participant.current_session.img_index == IMG_PER_SESSION:
-        current_user.finish_session()
         return redirect(url_for('tree'))
 
     if current_user.get_break():
@@ -438,8 +453,9 @@ def example_taxonomy(id):
 @app.route('/results', methods=['GET'])
 @login_required
 def results():
-    assignment_id = request.args.get('assignmentId')
-    submit_to = request.args.get('turkSubmitTo')
+    assignment_id = current_user.get_current_assignment_id()
+    submit_to = current_user.get_submit_to()
+    current_user.finish_session()
     if QUIZ:
         scores = current_user.get_scores()
         corrects = [s[0] for s in scores]
