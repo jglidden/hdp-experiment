@@ -276,6 +276,7 @@ def create_user(username):
 
 @app.route('/')
 def root():
+    logout_user()
     worker_id = request.args.get('workerId')
     assignment_id = request.args.get('assignmentId')
     hit_id = request.args.get('hitId')
