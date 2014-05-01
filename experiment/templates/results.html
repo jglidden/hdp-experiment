@@ -14,7 +14,11 @@
             {% endif %}
         {% endif %}
 
-        <h3> Take a break and when you are ready, <a href="exp">start the next session</a></h3>
+        <form id="mturk_form" method="POST" action={{submit_to}}>
+            <input type="hidden" id="assignmentId" name="assignmentId" value={{assignment_id}}>
+            <input id="submitButton" type="submit" name="Submit" value="Submit to MTurk">
+        </form>
+
      </div>
 </div>
 

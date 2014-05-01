@@ -8,7 +8,7 @@ from flask.ext.login import (LoginManager,
                              logout_user,
                              current_user)
 from flask.ext.sqlalchemy import SQLAlchemy
-#from boto.mturk.connection import MTurkConnection
+from boto.mturk.connection import MTurkConnection
 import logging
 import uuid
 import datetime
@@ -17,14 +17,14 @@ import markdown
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
-#app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
-#app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
-#app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
-#
-#mtc = MTurkConnection(
-#        aws_access_key_id=app.config['ACCESS_ID'],
-#        aws_secret_access_key=app.config['SECRET_KEY'],
-#        host=app.config['AWS_HOST'])
+app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
+app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
+app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
+
+mtc = MTurkConnection(
+        aws_access_key_id=app.config['ACCESS_ID'],
+        aws_secret_access_key=app.config['SECRET_KEY'],
+        host=app.config['AWS_HOST'])
 db = SQLAlchemy(app)
 
 from logging import StreamHandler
@@ -36,7 +36,8 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 
 QUIZ = int(os.environ.get('COCO_QUIZ', '1')) != 0
-DEBUG = os.environ.get('DEBUG_EXPERIMENT')
+#DEBUG = os.environ.get('DEBUG_EXPERIMENT')
+DEBUG = True
 if DEBUG:
     IMG_PER_SESSION = 6
     BLOCKS = 2
@@ -437,6 +438,8 @@ def example_taxonomy(id):
 @app.route('/results', methods=['GET'])
 @login_required
 def results():
+    assignment_id = request.args.get('assignmentId')
+    submit_to = request.args.get('turkSubmitTo')
     if QUIZ:
         scores = current_user.get_scores()
         corrects = [s[0] for s in scores]
@@ -452,11 +455,16 @@ def results():
                 quiz=True,
                 diffsign=diffsign,
                 diff=diff,
-                sesscount=len(corrects))
+                sesscount=len(corrects),
+                assignment_id=assignment_id,
+                submit_to=submit_to)
     else:
         return render_template(
                 'results.html',
-                quiz=False)
+                quiz=False,
+                assignment_id=assignment_id,
+                submit_to=submit_to)
+
 
 @app.route('/scores', methods=['GET'])
 @login_required
