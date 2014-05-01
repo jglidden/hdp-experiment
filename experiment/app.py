@@ -16,7 +16,7 @@ import markdown
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
 #app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
 #app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
 #app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
@@ -420,7 +420,6 @@ def tree_instructions():
     return render_template('tree_instructions.html')
 
 @app.route('/experiment_instructions/<pageno>', methods=['GET'])
-@login_required
 def experiment_instruction(pageno):
     pageno=int(pageno)
     nextpage = None
@@ -478,4 +477,4 @@ def results_plot():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0')
