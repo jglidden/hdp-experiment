@@ -454,7 +454,7 @@ def example_taxonomy(id):
 @login_required
 def results():
     assignment_id = current_user.get_current_assignment_id()
-    submit_to = current_user.get_submit_to()
+    submit_to = os.path.join(current_user.get_submit_to(), 'mturk/externalSubmit')
     current_user.finish_session()
     if QUIZ:
         scores = current_user.get_scores()
