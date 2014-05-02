@@ -24,7 +24,7 @@ for day in range(DAYS):
     title = 'Categorization Experiment Day {0}'.format(day)
     question_form = ExternalQuestion(external_url='https://fruitexp.dreamhosters.com', frame_height=1000)
     keywords=['boto', 'test', 'doctest']
-    create_hit_rs = mtc.create_hit(question=question_form, max_assignments=2,title=title, keywords=keywords,reward = 0.05, duration=60*6, qualifications=Qualifications(r))
+    create_hit_rs = mtc.create_hit(question=question_form, max_assignments=2,title=title, keywords=keywords,reward = 0.05, duration=60*6, qualifications=Qualifications(requirements))
     assert(create_hit_rs.status == True)
 
 
