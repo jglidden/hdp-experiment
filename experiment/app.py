@@ -17,14 +17,15 @@ import markdown
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
-#app.config['ACCESS_ID'] = os.environ['AWS_ACCESS_KEY']
-#app.config['SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
-#app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
-#
-#mtc = MTurkConnection(
-#        aws_access_key_id=app.config['ACCESS_ID'],
-#        aws_secret_access_key=app.config['SECRET_KEY'],
-#        host=app.config['AWS_HOST'])
+app.config['ACCESS_ID'] = os.environ.get('AWS_ACCESS_KEY', 'AKIAIBDYDTQOLPFSLS7A')
+app.config['SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', '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')
+app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
+
+mtc = MTurkConnection(
+        aws_access_key_id=app.config['ACCESS_ID'],
+        aws_secret_access_key=app.config['SECRET_KEY'],
+        host=app.config['AWS_HOST'])
+QUALIFICATION_ID = '3VZVROTBN6J8Q5O3BFCWBA48H0P9XY'
 db = SQLAlchemy(app)
 
 from logging import StreamHandler
@@ -288,6 +289,7 @@ def root():
         else:
             user = create_user(worker_id)
             login_user(user, remember=True)
+            mtc.assign_qualification(QUALIFICATION_ID, worker_id, value=0)
         if user.get_current_session() == None:
             user.create_new_session(assignment_id, submit_to, hit_id)
     return redirect(url_for('exp'))
@@ -457,6 +459,9 @@ def results():
     assignment_id = current_user.get_current_assignment_id()
     submit_to = os.path.join(current_user.get_submit_to(), 'mturk/externalSubmit')
     current_user.finish_session()
+    worker_id = current_user.get_worker_id()
+    qualification_score = mtc.get_qualification_score(QUALIFICATION_ID, worker_id)
+    mtc.update_qualification_score(QUALIFICATION_ID, worker_id, qualification_score+1)
     if QUIZ:
         scores = current_user.get_scores()
         corrects = [s[0] for s in scores]
