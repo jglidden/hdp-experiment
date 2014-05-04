@@ -298,7 +298,10 @@ def root():
         else:
             user = create_user(worker_id)
             login_user(user, remember=True)
-            mtc.assign_qualification(QUALIFICATION_ID, worker_id, value=0)
+            try:
+                mtc.assign_qualification(QUALIFICATION_ID, worker_id, value=0)
+            except:
+                pass
         if user.get_current_session() == None:
             user.create_new_session(assignment_id, submit_to, hit_id)
     return redirect(url_for('exp'))
