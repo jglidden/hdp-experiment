@@ -14,7 +14,7 @@ mtc = MTurkConnection(
 
 
 ASSIGNMENTS = 2
-DAYS = 1
+DAYS = 2
 QUALIFICATION_ID = '3VZVROTBN6J8Q5O3BFCWBA48H0P9XY'
 for day in range(DAYS):
     requirements = []
