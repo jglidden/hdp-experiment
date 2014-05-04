@@ -102,6 +102,8 @@ class Session(db.Model):
     assignment_id = db.Column(db.String(128))
     submit_to = db.Column(db.String(128))
     hit_id = db.Column(db.String(128))
+    img = db.Column(db.String(128))
+    label = db.Column(db.String(128))
 
     def __init__(self, participant, assignment_id, submit_to, hit_id):
         self.id = str(uuid.uuid4())
@@ -116,6 +118,9 @@ class Session(db.Model):
         self.assignment_id = assignment_id
         self.submit_to = submit_to
         self.hit_id = hit_id
+        label, img = exper.gen_pair()
+        self.label = label
+        self.img = img
 
 
 class Block(db.Model):
@@ -184,7 +189,8 @@ class User(UserMixin):
     def get_current_pair(self):
         current_session = self.participant.current_session
         img_index = current_session.img_index
-        label, img = exper.gen_pair()
+        label = current_session.label
+        img = current_session.img
         block_index = img_index / BLOCKSIZE + 1
         local_index = img_index % BLOCKSIZE + 1
         return label, img, local_index, block_index
@@ -193,6 +199,9 @@ class User(UserMixin):
         current_session = self.participant.current_session
         current_session.img_index += 1
         img_index = current_session.img_index
+        label, img = exper.gen_pair()
+        current_session.label = label
+        current_session.img = img
         if img_index % BLOCKSIZE == 0:
             self.participant.on_break = True
         db.session.commit()
