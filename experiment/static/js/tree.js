@@ -428,6 +428,7 @@ function runInstructions(time_elapsed, text, cursor) {
 }
 
 function instructTree() {
+    setUpPage(margin, width, height);
     resetNodes();
     restart();
     var i = 1;
