@@ -20,3 +20,6 @@ def test_check():
 def test_gen_pair():
     img, label = exp._gen_pair(True)
     assert_true(exp.check_pair(img, label))
+
+    img, label = exp._gen_pair(False)
+    assert_false(exp.check_pair(img, label))

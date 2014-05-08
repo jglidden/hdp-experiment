@@ -9,7 +9,7 @@ SCRIPTDIR = os.path.dirname(__file__)
 STIM_PREFIX = 'static/stimuli'
 STIM_DIR = os.path.join(SCRIPTDIR, STIM_PREFIX)
 KEY_FILE = os.path.join(SCRIPTDIR, os.path.join(STIM_PREFIX, 'key.json'))
-CORRECT_FREQUENCY = .25
+CORRECT_FREQUENCY = .5
 with open(KEY_FILE) as f:
     EXPERIMENT_KEY = json.load(f)
 ALL_CATS = set([i for cat in EXPERIMENT_KEY.values() for i in cat])
