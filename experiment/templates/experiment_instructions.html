@@ -14,12 +14,19 @@
     <div id="content">
     <script src="../static/js/tree.js"></script>
     <script>
-        showExample({{pageno}}, 200, 960);
+        showExample({{pageno}}, 250, 820);
     </script>
     </div>
     {% endif %}
     <div class="container">
-    <a href="/experiment_instructions/{{nextpage}}"><button class="btn btn-primary">Continue</button></a>
+    <ul class="pager">
+          {% if pageno|int() > 1 %}
+          <li class="previous"><a href="/experiment_instructions/{{pageno-1}}">Previous</a></li>
+          {% endif %}
+          {% if nextpage %}
+          <li class="next"><a href="/experiment_instructions/{{pageno+1}}">Next</a></li>
+          {% endif %}
+    </ul>
     </div>
 </body>
 </html>
