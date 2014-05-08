@@ -182,7 +182,7 @@ class User(UserMixin):
 
     def get_submit_to(self):
         return self.participant.current_session.submit_to
-
+    
     def get_current_session(self):
         return self.participant.current_session
 
@@ -468,12 +468,21 @@ def example_taxonomy(id):
 @app.route('/results', methods=['GET'])
 @login_required
 def results():
+    if not current_user.get_current_session():
+        return redirect(url_for('root'))
     assignment_id = current_user.get_current_assignment_id()
-    submit_to = os.path.join(current_user.get_submit_to(), 'mturk/externalSubmit')
+    submit_base = current_user.get_submit_to()
+    if submit_base:
+        submit_to = os.path.join(current_user.get_submit_to(), 'mturk/externalSubmit')
+    else:
+        submit_to = '/'
     current_user.finish_session()
-    worker_id = current_user.get_worker_id()
-    qualification_score = mtc.get_qualification_score(QUALIFICATION_ID, worker_id)
-    mtc.update_qualification_score(QUALIFICATION_ID, worker_id, qualification_score+1)
+    worker_id = current_user.get_username()
+    try:
+        qualification_score = mtc.get_qualification_score(QUALIFICATION_ID, worker_id)
+        mtc.update_qualification_score(QUALIFICATION_ID, worker_id, qualification_score+1)
+    except:
+        pass
     if QUIZ:
         scores = current_user.get_scores()
         corrects = [s[0] for s in scores]
