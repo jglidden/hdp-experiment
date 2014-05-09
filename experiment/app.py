@@ -366,7 +366,8 @@ def exp():
                 'experiment.html',
                 img=exper.ALL_IMGS[0],
                 label=exper.LABELS_BY_CAT['1'][0],
-                preview=True)
+                preview=True,
+                score=0.)
     new = True if not current_user.is_debriefed() else None
     current_user.set_debriefed(True)
     user_id = current_user.get_username()
@@ -411,7 +412,7 @@ def exp():
         current_user.advance_pair()
     part = current_user.participant
     if part.current_session.img_index == 0:
-        current_score = 0
+        current_score = 0.
     else:
         current_score = float(part.current_session.correct) / part.current_session.img_index
     if QUIZ:
