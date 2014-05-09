@@ -409,6 +409,11 @@ def exp():
             correct = (input == actual)
             current_user.update_correct(correct)
         current_user.advance_pair()
+    part = current_user.participant
+    if part.current_session.img_index == 0:
+        current_score = 0
+    else:
+        current_score = float(part.current_session.correct) / part.current_session.img_index
     if QUIZ:
         return render_template(
             'experiment.html',
@@ -421,7 +426,8 @@ def exp():
             block_size=BLOCKSIZE,
             block_index=block_index,
             block_count=BLOCKS,
-            new=new)
+            new=new,
+            score=current_score)
     else:
         current_user.advance_pair()
         return render_template(
