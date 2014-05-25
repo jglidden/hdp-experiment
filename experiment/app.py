@@ -59,6 +59,18 @@ _session_block = db.Table('session_block',
         db.Column('block_id', db.String(128), db.ForeignKey('block.id'))
 )
 
+_block_response = db.Table('block_response',
+        db.Column('block_id', db.String(128), db.ForeignKey('block.id')),
+        db.Column('response_id', db.String(128), db.ForeignKey('response.id')))
+
+_session_tree = db.Table('session_tree',
+        db.Column('session_id', db.String(128), db.ForeignKey('session.id')),
+        db.Column('tree_id', db.String(128), db.ForeignKey('tree.id'))
+
+_tree_link = db.Table('session_link',
+        db.Column('tree_id', db.String(128), db.ForeignKey('tree.id')),
+        db.Column('link_id', db.String(128), db.ForeignKey('link.id'))
+
 
 class Participant(db.Model):
     __tablename__ = 'participant'
@@ -104,6 +116,7 @@ class Session(db.Model):
     hit_id = db.Column(db.String(128))
     img = db.Column(db.String(128))
     label = db.Column(db.String(128))
+    trees = db.relationship('Tre', secondary=_session_tree)
 
     def __init__(self, participant, assignment_id, submit_to, hit_id):
         self.id = str(uuid.uuid4())
@@ -132,6 +145,7 @@ class Block(db.Model):
     incorrect = db.Column('incorrect', db.Integer)
     created_at = db.Column(db.DateTime)
     finished_at = db.Column(db.DateTime)
+    responses = db.relationship('Response', secondary=_block_response)
 
     def __init__(self, session):
         self.id = str(uuid.uuid4())
@@ -139,6 +153,47 @@ class Block(db.Model):
         self.created_at = datetime.datetime.now()
         self.correct = 0
         self.incorrect = 0
+
+class Response(db.Model):
+    __tablename__ = 'response'
+
+    id = db.Column(db.String(128), primary_key=True)
+    stimulus = db.Column(db.String(128))
+    label = db.Column(db.String(128))
+    response = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime)
+    block_response = db.relationship('Block', uselist=False, backref='responses')
+
+    def __init__(self, block, stimulus, label, response):
+        self.id = str(uuid.uuid4())
+        self.block = block
+        self.stimulus = stimulus
+        self.label = label
+        self.created_at = datetime.datetime.now()
+
+class Tree(db.Model):
+    __tablename__ = 'tree'
+    id = db.Column(db.String(128), primary_key=True)
+    session = db.relationship('Session', uselist=False, backref='trees')
+    links = db.relationship('Link', secondary=_tree_link)
+    created_at = db.Column(db.DateTime)k
+
+    def __init__(self, session):
+        self.id = str(uuid.uuid4())
+        self.session = session
+        self.created_at = datetime.datetime.now()
+
+class Link(db.Model):
+    __tablename__ = 'node'
+    id = db.Column(db.String(128), primary_key=True)
+    tree = db.relationship('Tree', uselist=False, backref='links')
+    source = db.Column(db.Integer)
+    target = db.Column(db.Integer)
+
+    def __init__(self, source, target, tree):
+        self.tree = tree
+        self.source = source
+        self.target = target
 
 
 
@@ -215,6 +270,24 @@ class User(UserMixin):
             current_session.incorrect += 1
             current_session.current_block.incorrect += 1
         db.session.commit()
+
+    def add_response(self, stimulus, label, res):
+        current_block = self.participant.current_session.current_block
+        response = Response(
+                current_block,
+                stimulus,
+                label,
+                res)
+        db.response.add(response)
+        db.session.commit()
+
+    def add_tree(self, links):
+        current_session = self.participant.current_session
+        tree = Tree(current_session)
+        db.tree.add(tree)
+        for link in links:
+            new_link = Link(link['source'], link['target'], tree)
+            db.link.add(new_link)
 
     def create_new_session(self, assignment_id, submit_to, hit_id):
         new_session = Session(self.participant, assignment_id, submit_to, hit_id)
@@ -409,6 +482,7 @@ def exp():
             actual = exper.check_pair(label, img)
             correct = (input == actual)
             current_user.update_correct(correct)
+            current_user.add_response(img, label, response)
         current_user.advance_pair()
     part = current_user.participant
     if part.current_session.img_index == 0:
@@ -446,6 +520,7 @@ def exp():
 def tree():
     if request.method == 'POST':
         links = request.form.get('links')
+        current_user.add_tree(links)
         return redirect(url_for('results'))
     new = True if not current_user.is_tree_debriefed() else None
     current_user.set_tree_debriefed(True)
