@@ -38,7 +38,7 @@ login_manager.init_app(app)
 
 QUIZ = int(os.environ.get('COCO_QUIZ', '1')) != 0
 #DEBUG = os.environ.get('DEBUG_EXPERIMENT')
-DEBUG = True
+DEBUG = False
 if DEBUG:
     IMG_PER_SESSION = 6
     BLOCKS = 2
@@ -61,15 +61,18 @@ _session_block = db.Table('session_block',
 
 _block_response = db.Table('block_response',
         db.Column('block_id', db.String(128), db.ForeignKey('block.id')),
-        db.Column('response_id', db.String(128), db.ForeignKey('response.id')))
+        db.Column('response_id', db.String(128), db.ForeignKey('response.id'))
+)
 
 _session_tree = db.Table('session_tree',
         db.Column('session_id', db.String(128), db.ForeignKey('session.id')),
         db.Column('tree_id', db.String(128), db.ForeignKey('tree.id'))
+)
 
-_tree_link = db.Table('session_link',
+_tree_link = db.Table('tree_link',
         db.Column('tree_id', db.String(128), db.ForeignKey('tree.id')),
         db.Column('link_id', db.String(128), db.ForeignKey('link.id'))
+)
 
 
 class Participant(db.Model):
@@ -116,7 +119,7 @@ class Session(db.Model):
     hit_id = db.Column(db.String(128))
     img = db.Column(db.String(128))
     label = db.Column(db.String(128))
-    trees = db.relationship('Tre', secondary=_session_tree)
+    trees = db.relationship('Tree', secondary=_session_tree, backref='session')
 
     def __init__(self, participant, assignment_id, submit_to, hit_id):
         self.id = str(uuid.uuid4())
@@ -145,7 +148,7 @@ class Block(db.Model):
     incorrect = db.Column('incorrect', db.Integer)
     created_at = db.Column(db.DateTime)
     finished_at = db.Column(db.DateTime)
-    responses = db.relationship('Response', secondary=_block_response)
+    responses = db.relationship('Response', secondary=_block_response, backref='block')
 
     def __init__(self, session):
         self.id = str(uuid.uuid4())
@@ -162,7 +165,6 @@ class Response(db.Model):
     label = db.Column(db.String(128))
     response = db.Column(db.Integer)
     created_at = db.Column(db.DateTime)
-    block_response = db.relationship('Block', uselist=False, backref='responses')
 
     def __init__(self, block, stimulus, label, response):
         self.id = str(uuid.uuid4())
@@ -171,22 +173,24 @@ class Response(db.Model):
         self.label = label
         self.created_at = datetime.datetime.now()
 
+
 class Tree(db.Model):
     __tablename__ = 'tree'
     id = db.Column(db.String(128), primary_key=True)
-    session = db.relationship('Session', uselist=False, backref='trees')
-    links = db.relationship('Link', secondary=_tree_link)
-    created_at = db.Column(db.DateTime)k
+    #session = db.relationship('Session', uselist=True, backref='trees')
+    links = db.relationship('Link', secondary=_tree_link, backref='tree')
+    created_at = db.Column(db.DateTime)
 
     def __init__(self, session):
         self.id = str(uuid.uuid4())
         self.session = session
         self.created_at = datetime.datetime.now()
 
+
 class Link(db.Model):
-    __tablename__ = 'node'
+    __tablename__ = 'link'
     id = db.Column(db.String(128), primary_key=True)
-    tree = db.relationship('Tree', uselist=False, backref='links')
+    #tree = db.relationship('Tree', uselist=True, backref='links')
     source = db.Column(db.Integer)
     target = db.Column(db.Integer)
 
