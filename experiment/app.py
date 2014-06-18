@@ -168,7 +168,7 @@ class Response(db.Model):
 
     def __init__(self, block, stimulus, label, response):
         self.id = str(uuid.uuid4())
-        self.block = block
+        self.block_response = block
         self.stimulus = stimulus
         self.label = label
         self.created_at = datetime.datetime.now()
@@ -177,7 +177,6 @@ class Response(db.Model):
 class Tree(db.Model):
     __tablename__ = 'tree'
     id = db.Column(db.String(128), primary_key=True)
-    #session = db.relationship('Session', uselist=True, backref='trees')
     links = db.relationship('Link', secondary=_tree_link, backref='tree')
     created_at = db.Column(db.DateTime)
 
@@ -190,7 +189,6 @@ class Tree(db.Model):
 class Link(db.Model):
     __tablename__ = 'link'
     id = db.Column(db.String(128), primary_key=True)
-    #tree = db.relationship('Tree', uselist=True, backref='links')
     source = db.Column(db.Integer)
     target = db.Column(db.Integer)
 
@@ -282,16 +280,17 @@ class User(UserMixin):
                 stimulus,
                 label,
                 res)
-        db.response.add(response)
+        db.session.add(response)
         db.session.commit()
 
     def add_tree(self, links):
         current_session = self.participant.current_session
         tree = Tree(current_session)
-        db.tree.add(tree)
+        db.session.add(tree)
         for link in links:
             new_link = Link(link['source'], link['target'], tree)
-            db.link.add(new_link)
+            db.session.add(new_link)
+        db.session.commit()
 
     def create_new_session(self, assignment_id, submit_to, hit_id):
         new_session = Session(self.participant, assignment_id, submit_to, hit_id)
