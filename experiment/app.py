@@ -37,6 +37,7 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 
 QUIZ = int(os.environ.get('COCO_QUIZ', '1')) != 0
+TREE_ON_BLOCK = True
 #DEBUG = os.environ.get('DEBUG_EXPERIMENT')
 DEBUG = False
 if DEBUG:
@@ -44,7 +45,7 @@ if DEBUG:
     BLOCKS = 2
 else:
     IMG_PER_SESSION = 200
-    BLOCKS = 10
+    BLOCKS = 4
 BLOCKSIZE = IMG_PER_SESSION/BLOCKS
 USERS = {}
 
@@ -180,9 +181,8 @@ class Tree(db.Model):
     links = db.relationship('Link', secondary=_tree_link, backref='tree')
     created_at = db.Column(db.DateTime)
 
-    def __init__(self, session):
+    def __init__(self):
         self.id = str(uuid.uuid4())
-        self.session = session
         self.created_at = datetime.datetime.now()
 
 
@@ -193,9 +193,9 @@ class Link(db.Model):
     target = db.Column(db.Integer)
 
     def __init__(self, source, target, tree):
-        self.tree = tree
         self.source = source
         self.target = target
+        tree.links.append(self)
 
 
 
@@ -285,7 +285,8 @@ class User(UserMixin):
 
     def add_tree(self, links):
         current_session = self.participant.current_session
-        tree = Tree(current_session)
+        tree = Tree()
+        current_session.trees.append(tree)
         db.session.add(tree)
         for link in links:
             new_link = Link(link['source'], link['target'], tree)
@@ -453,6 +454,8 @@ def exp():
     if current_user.get_break():
         current_user.finish_block()
         current_user.set_break(False)
+        if TREE_ON_BLOCK:
+            return redirect(url_for('tree'))
         part = current_user.participant
         if not QUIZ:
             return render_template('finish_block.html', quiz=False)
@@ -522,9 +525,12 @@ def exp():
 @login_required
 def tree():
     if request.method == 'POST':
-        links = request.form.get('links')
+        links = json.loads(request.form.get('links'))
         current_user.add_tree(links)
-        return redirect(url_for('results'))
+        if current_user.participant.current_session.img_index == IMG_PER_SESSION:
+            return redirect(url_for('results'))
+        else:
+            return redirect(url_for('exp'))
     new = True if not current_user.is_tree_debriefed() else None
     current_user.set_tree_debriefed(True)
     return render_template('tree.html', new=new)
@@ -613,4 +619,4 @@ def results_plot():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)
