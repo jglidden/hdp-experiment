@@ -192,10 +192,10 @@ class Link(db.Model):
     source = db.Column(db.Integer)
     target = db.Column(db.Integer)
 
-    def __init__(self, source, target, tree):
+    def __init__(self, source, target):
+        self.id = str(uuid.uuid4())
         self.source = source
         self.target = target
-        tree.links.append(self)
 
 
 
@@ -289,7 +289,8 @@ class User(UserMixin):
         current_session.trees.append(tree)
         db.session.add(tree)
         for link in links:
-            new_link = Link(link['source'], link['target'], tree)
+            new_link = Link(link['source']['id'], link['target']['id'])
+            tree.links.append(new_link)
             db.session.add(new_link)
         db.session.commit()
 
