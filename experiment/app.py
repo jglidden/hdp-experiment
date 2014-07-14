@@ -546,7 +546,7 @@ def tree_instructions():
 def experiment_instruction(pageno):
     pageno=int(pageno)
     nextpage = None
-    if pageno < 6:
+    if pageno < 7:
         nextpage = pageno + 1
     return render_template('experiment_instructions.html', pageno=pageno, nextpage=nextpage)
 
