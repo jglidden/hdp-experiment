@@ -17,15 +17,15 @@ import markdown
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
-app.config['ACCESS_ID'] = os.environ.get('AWS_ACCESS_KEY', 'AKIAIBDYDTQOLPFSLS7A')
-app.config['SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', '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')
-app.config['AWS_HOST'] = 'mechanicalturk.sandbox.amazonaws.com'
+app.config['ACCESS_ID'] = os.environ.get('AWS_ACCESS_KEY', 'AKIAJGBULS6Q3DXYVK4Q')
+app.config['SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', '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')
+app.config['AWS_HOST'] = 'mturk.com'
 
 mtc = MTurkConnection(
         aws_access_key_id=app.config['ACCESS_ID'],
         aws_secret_access_key=app.config['SECRET_KEY'],
         host=app.config['AWS_HOST'])
-QUALIFICATION_ID = '3VZVROTBN6J8Q5O3BFCWBA48H0P9XY'
+QUALIFICATION_ID = '3SLCM7XLWH8WO61VD7YZPK4Q3U9T69'
 db = SQLAlchemy(app)
 
 from logging import StreamHandler
