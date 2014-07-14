@@ -5,7 +5,7 @@ from boto.mturk.qualification import Requirement, Qualifications
 
 ACCESS_ID = 'AKIAJGBULS6Q3DXYVK4Q'
 SECRET_KEY = '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'
-HOST = 'mturk.com'
+HOST = 'mechanicalturk.amazonaws.com'
 
 mtc = MTurkConnection(
         aws_access_key_id=ACCESS_ID,
@@ -37,6 +37,7 @@ for day in range(DAYS):
             reward=3.00+day*.50,
             duration=2*60*60,
             lifetime=5*24*60*60,
+            approval_delay=7*24*60*60,
             qualifications=Qualifications(requirements))
     assert(create_hit_rs.status == True)
 
