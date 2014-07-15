@@ -19,7 +19,7 @@ app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
 app.config['ACCESS_ID'] = os.environ.get('AWS_ACCESS_KEY', 'AKIAJGBULS6Q3DXYVK4Q')
 app.config['SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', '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')
-app.config['AWS_HOST'] = 'mturk.com'
+app.config['AWS_HOST'] = 'mechanicalturk.amazonaws.com'
 
 mtc = MTurkConnection(
         aws_access_key_id=app.config['ACCESS_ID'],
