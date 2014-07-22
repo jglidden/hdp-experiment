@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block otherhead %}
+<link rel="stylesheet" href="../static/css/plot.css">
+{% endblock %}
+
+{% block content %}
+<body>
+    <script src="../static/js/plot.js"></script>
+    <script type="text/javascript">
+        d3.csv("/data/responses")
+            .get(function(error, data) {
+                    lineChart(error, data);
+                });
+    </script>
+</body>
+{% endblock %}

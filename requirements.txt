@@ -1,6 +1,7 @@
 Flask
 Flask-login
 Flask-sqlalchemy
+Flask-BasicAuth
 #psycopg2
 gunicorn
 boto

@@ -1,5 +1,6 @@
 import os
 from experiment import exp as exper
+from flask import Response as FlaskResponse
 from flask import *
 from flask.ext.login import (LoginManager,
                              login_required,
@@ -8,11 +9,12 @@ from flask.ext.login import (LoginManager,
                              logout_user,
                              current_user)
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.basicauth import BasicAuth
 from boto.mturk.connection import MTurkConnection
 import logging
 import uuid
 import datetime
-import markdown
+from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
@@ -613,6 +615,46 @@ def scores():
 def results_plot():
     return render_template('results_plot.html')
 
+
+app.config['BASIC_AUTH_USERNAME'] = 'cocosci'
+app.config['BASIC_AUTH_PASSWORD'] = 'monkey'
+
+basic_auth = BasicAuth(app)
+
+@app.route('/admin', methods=['GET'])
+@basic_auth.required
+def admin():
+    return render_template('admin/admin.html')
+
+
+@app.route('/data/responses')
+def data_responses():
+    finished_sessions = Session.query.filter(Session.img_index == IMG_PER_SESSION).all()
+    finished_sessions.sort(key=lambda x: x.finished_at)
+    results_by_user = defaultdict(lambda: [])
+    for fs in finished_sessions:
+        results_by_user[fs.participant[0].id].append(fs)
+    rows = []
+    rows.append(['session'] + results_by_user.keys())
+    for i in range(max(map(len, results_by_user.values()))):
+        row = [i]
+        for _id, sessions in results_by_user.items():
+            row.append(float(sessions[i].correct) / (sessions[i].correct+sessions[i].incorrect))
+        rows.append(row)
+    def generate():
+        for row in rows:
+            yield ','.join(map(str, row)) + '\n'
+    return FlaskResponse(generate(), mimetype='text/csv')
+
+@app.route('/admin/responses')
+def admin_responses():
+    return render_template('admin/responses.html')
+
+    
+    
+
+
+    
 
 
 
