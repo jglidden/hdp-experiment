@@ -1,0 +1,13 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div>
+<div class="list-group">
+    <ul>
+    {% for user in users %}
+        <li class="list-group-item"> <a href="trees/{{user}}">{{user}}</a></li>
+    {% endfor %}
+    </ul>
+</div>
+</div>
+{% endblock %}

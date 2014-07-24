@@ -74,11 +74,15 @@ function resetNodes() {
     }
 }
 
+var nodes_by_id = {};
+
 function resetLinks(defaultLinks) {
+    nodes_by_id = {};
+    nodes.forEach(function(n) {nodes_by_id[n.id] = n;})
     var i;
     for (i = 0; i < defaultLinks.length; i += 1) {
-        source = nodes[defaultLinks[i].source]
-        target = nodes[defaultLinks[i].target]
+        source = nodes_by_id[defaultLinks[i].source]
+        target = nodes_by_id[defaultLinks[i].target]
         newLink = {source: source, target: target, right: true, left: false}
         links.push(newLink)
     }
@@ -96,8 +100,18 @@ function prettyTree(defaultLinks, h, w) {
     else parent.children = [child];
     });
 
+    var targets = defaultLinks.map(function(l) { return l.target.name; });
+    var sources = defaultLinks.map(function(l) { return l.source.name; });
+    var roots = nodes.filter(function(n) { return targets.indexOf(n.id) === -1; })
+                     .map(function(n) { return n.id; });
+    var rootNodes = [];
+    defaultLinks.forEach(function(l) {
+        if ((roots.indexOf(l.source.name) > -1) 
+            && (rootNodes.map(function(r) { return r.source }).indexOf(l.source) === -1)) {
+            rootNodes.push(l)
+        }
+    });
 
-    console.log(defaultLinks)
     function nodeByName(name) {
     return nodesByName[name] || (nodesByName[name] = {name: name});
     }
@@ -106,31 +120,30 @@ function prettyTree(defaultLinks, h, w) {
     var trees = [];
     var x;
     var y;
+    rootNodes.forEach(function(root) {
+        var tree = d3.layout.tree()
+            .size([w, h]);
+        var treeNodes = tree.nodes(root.source);
+        var realNodes = [];
+        treeNodes.forEach(function(n) {
+            realNode = nodes_by_id[n.name]
+            realNode.x = n.x 
+            realNode.y = n.y
+            realNodes.push(realNode)
+        });
+        x = realNode.x;
+        y = realNode.y;
+        trees.push(realNodes)
+    });
+
     nodes.forEach(function(newNode) {
         if (!newNode.hasOwnProperty('x')) {
-            if (newNode.id > defaultLinks.length) {
-                newNode.x = x;
-                newNode.y = y;
-                var realNodes = [newNode];
-            }
-            else {
-                var tree = d3.layout.tree()
-                    .size([w, h]);
-                var treeNodes = tree.nodes(defaultLinks[newNode.id].source);
-                console.log(defaultLinks)
-                var realNodes = [];
-                treeNodes.forEach(function(n) {
-                    realNode = nodes[n.name]
-                    realNode.x = n.x 
-                    realNode.y = n.y
-                    realNodes.push(realNode)
-                x = nodes[newNode.id].x;
-                y = nodes[newNode.id].y;
-                })
-            }
-            trees.push(realNodes);
+            newNode.x = x;
+            newNode.y = y;
+            trees.push([newNode]);
         }
-    })
+    });
+
     for (i = 0; i < trees.length; i += 1) {
         trees[i].forEach(function(n) {
             n.x = n.x/trees.length + w * i / trees.length
@@ -465,4 +478,16 @@ function showExample(id, h, w) {
       configureMouse();
       restart();
     });
+}
+
+function defaultTreeFromLinks(new_links) {
+    nodes.sort(function(a, b) { return a.id - b.id});
+    new_links.forEach(function(n) {
+        setUpPage(margin, width, height);
+        links = [];
+        resetLinks(n);
+        prettyTree(n, height, width);
+        restart();
+    });
+    configureMouse();
 }

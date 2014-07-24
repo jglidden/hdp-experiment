@@ -19,6 +19,7 @@ from collections import defaultdict
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@127.0.0.1:3307/treehdpfruit')
 app.config['ACCESS_ID'] = os.environ.get('AWS_ACCESS_KEY', 'AKIAJGBULS6Q3DXYVK4Q')
 app.config['SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', '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')
 app.config['AWS_HOST'] = 'mechanicalturk.amazonaws.com'
@@ -175,6 +176,7 @@ class Response(db.Model):
         self.stimulus = stimulus
         self.label = label
         self.created_at = datetime.datetime.now()
+        self.response = response
 
 
 class Tree(db.Model):
@@ -628,27 +630,67 @@ def admin():
 
 
 @app.route('/data/responses')
+@basic_auth.required
 def data_responses():
     finished_sessions = Session.query.filter(Session.img_index == IMG_PER_SESSION).all()
     finished_sessions.sort(key=lambda x: x.finished_at)
     results_by_user = defaultdict(lambda: [])
     for fs in finished_sessions:
         results_by_user[fs.participant[0].id].append(fs)
+    responses = {}
+    for user, sessions in results_by_user.iteritems():
+        responses[user] = {}
+        for i, session in enumerate(sessions):
+            session_responses = []
+            for block in sorted(session.blocks, key=lambda _: _.created_at):
+                pct_correct = float(block.correct) / (block.correct + block.incorrect)
+                session_responses.append(pct_correct)
+            responses[user][i] = session_responses
+
     rows = []
-    rows.append(['session'] + results_by_user.keys())
-    for i in range(max(map(len, results_by_user.values()))):
-        row = [i]
-        for _id, sessions in results_by_user.items():
-            row.append(float(sessions[i].correct) / (sessions[i].correct+sessions[i].incorrect))
-        rows.append(row)
+    rows.append(['session', 'x'] + responses.keys())
+    for i in range(max(map(len, responses.values()))):
+        for b in range(BLOCKS):
+            row = [i, b]
+            for user, sessions in responses.iteritems():
+                row.append(sessions[i][b])
+            rows.append(row)
     def generate():
         for row in rows:
             yield ','.join(map(str, row)) + '\n'
     return FlaskResponse(generate(), mimetype='text/csv')
 
 @app.route('/admin/responses')
+@basic_auth.required
 def admin_responses():
     return render_template('admin/responses.html')
+
+
+@app.route('/admin/users')
+@basic_auth.required
+def admin_users():
+    finished_sessions = Session.query.filter(Session.img_index == IMG_PER_SESSION).all()
+    users = set([fs.participant[0].username for fs in finished_sessions])
+    return render_template('admin/users.html', users=list(users))
+
+
+def format_links(tree):
+    links = tree.links
+    return sorted([{'source': link.source, 'target': link.target} for link in links], key=lambda x: x['source'])
+
+@app.route('/data/trees/<user_id>')
+@basic_auth.required
+def data_trees_useruser_id(user_id):
+    user = get_user_by_username(user_id).participant
+    sessions = sorted(user.sessions, key=lambda s: s.finished_at)
+    trees = [tree for session in sessions for tree in sorted(session.trees, key=lambda t: t.created_at)]
+    links = [format_links(t) for t in trees]
+    return json.dumps(links)
+
+@app.route('/admin/trees/<user_id>')
+@basic_auth.required
+def admin_trees_user(user_id):
+    return render_template('admin/trees.html', user_id=user_id)
 
     
     
@@ -662,4 +704,4 @@ def admin_responses():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=False)

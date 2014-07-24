@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block otherhead %}
+<link rel="stylesheet" href="/static/css/tree.css">
+{% endblock %}
+
+{% block content %}
+<body>
+    <script src="/static/js/tree.js"></script>
+    <script type="text/javascript">
+        d3.json("/data/trees/{{user_id}}")
+            .get(function(error, data) {
+                    defaultTreeFromLinks(data);
+                });
+    </script>
+</body>
+{% endblock %}

@@ -7,13 +7,16 @@ var parseDate = d3.time.format("%Y%m%d").parse;
 var x = d3.scale.linear()
     .range([0, width]);
 
+var xSessions = d3.scale.linear()
+    .range([0, width]);
+
 var y = d3.scale.linear()
     .range([height, 0]);
 
 var color = d3.scale.category10();
 
 var xAxis = d3.svg.axis()
-    .scale(x)
+    .scale(xSessions)
     .orient("bottom");
 
 var yAxis = d3.svg.axis()
@@ -21,7 +24,7 @@ var yAxis = d3.svg.axis()
     .orient("left");
 
 var line = d3.svg.line()
-    .interpolate("basis")
+    .interpolate("linear")
     .x(function(d) { return x(d.x); })
     .y(function(d) { return y(d.y); });
 
@@ -32,21 +35,49 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 function lineChart(error, data) {
-    color.domain(d3.keys(data[0]).filter(function(key) { return key != 'session'; }));
+    color.domain(d3.keys(data[0]).filter(function(key) { return key != 'session' && key != 'x'; }));
 
+    var xMax = d3.max(data, function(d) { return +d.x });
     var users = color.domain().map(function(name) {
         return {
             name: name,
             values: data.map(function(d) {
-                return {x: d.session, y: d[name]};
+                return {
+                    x: +d.session * xMax + +d.x,
+                    y: +d[name],
+                    session: +d.session,
+                    raw_x: +d.x};
             })
         };
     });
 
+    x.domain([
+      0,
+      d3.max(users, function(u) { return d3.max(u.values, function(v) { return v.x; }); })
+      ]);
+
+    sessionMax = d3.max(users, function(u) { return d3.max(u.values, function(v) { return v.session; })+1; });
+    xSessions.domain([
+      0,
+      sessionMax
+    ]);
+    xAxis.tickValues(d3.range(sessionMax));
+
+    y.domain([
+      0,
+      d3.max(users, function(u) { return d3.max(u.values, function(v) { return v.y; }); })
+      ]);
+            
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
+        .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text("session");
 
     svg.append("g")
         .attr("class", "y axis")
@@ -56,6 +87,7 @@ function lineChart(error, data) {
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
+        .text("% correct");
 
     var user = svg.selectAll(".user")
         .data(users)
@@ -67,6 +99,14 @@ function lineChart(error, data) {
         .attr("d", function(d) { return line(d.values); })
         .style("stroke", function(d) { return color(d.name); });
 
+    svg.selectAll(".session")
+        .data(users.filter(function(d) {return d.raw_x == xMax;}))
+      .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 3.5)
+        .attr("cx", function(d) { return x(d.x); })
+        .attr("cy", function(d) { return y(d.y); })
+        .style("fill", function(d) { return color(d.name); });
 }
 
 
