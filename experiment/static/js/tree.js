@@ -311,9 +311,15 @@ function onMouseMove(mouseX, mouseY) {
     restart();
 }
 
+        
 function submitTree() {
-    $('#links').val(JSON.stringify(links));
-    $('form').submit();
+    if (links == null || links.length == 0) {
+        error = document.getElementById("null-error");
+        error.style.display = "block";
+    } else {
+        $('#links').val(JSON.stringify(links));
+        $('form').submit();
+    }
 }
 
 function configureMouse() {

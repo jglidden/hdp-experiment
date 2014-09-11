@@ -33,6 +33,10 @@
         <p>double click to delete links</p>
     </div>
     <h3> Take a moment to construct the category hierarchy. </h3>
+    <div class="alert alert-danger alert-dismissible" id="null-error" style="display: none;" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
+        <strong>Error</strong> Cannot submit empty tree.
+    </div>
 </div>
 
 <script src="../static/js/tree.js"></script>
@@ -43,6 +47,6 @@
 
 <form form="display: none;" action="" method="POST">
     <input id="links" name="links" type="hidden">
-<button class="btn btn-primary"  onclick="submitTree()">Submit</button>
+<button class="btn btn-primary"  onclick="submitTree(); return false;">Submit</button>
 
 {% endblock %}
