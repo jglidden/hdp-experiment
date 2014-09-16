@@ -78,6 +78,11 @@ _tree_link = db.Table('tree_link',
         db.Column('link_id', db.String(128), db.ForeignKey('link.id'))
 )
 
+_tree_node = db.Table('tree_node',
+        db.Column('tree_id', db.String(128), db.ForeignKey('tree.id')),
+        db.Column('node_id', db.String(128), db.ForeignKey('node.id'))
+)
+
 
 class Participant(db.Model):
     __tablename__ = 'participant'
@@ -183,6 +188,7 @@ class Tree(db.Model):
     __tablename__ = 'tree'
     id = db.Column(db.String(128), primary_key=True)
     links = db.relationship('Link', secondary=_tree_link, backref='tree')
+    nodes = db.relationship('Node', secondary=_tree_node, backref='tree')
     created_at = db.Column(db.DateTime)
 
     def __init__(self):
@@ -195,12 +201,31 @@ class Link(db.Model):
     id = db.Column(db.String(128), primary_key=True)
     source = db.Column(db.Integer)
     target = db.Column(db.Integer)
+    left = db.Column(db.Boolean)
+    right = db.Column(db.Boolean)
 
-    def __init__(self, source, target):
+    def __init__(self, source, target, left, right):
         self.id = str(uuid.uuid4())
         self.source = source
         self.target = target
+        self.left = left
+        self.right = right
 
+
+class Node(db.Model):
+    __tablename__ = 'node'
+    id = db.Column(db.String(128), primary_key=True)
+    name = db.Column(db.String(128))
+    node_id = db.Column(db.Integer)
+    x = db.Column(db.Float)
+    y = db.Column(db.Float)
+
+    def __init__(self, name, node_id, x, y):
+        self.id = str(uuid.uuid4())
+        self.name = name
+        self.node_id = node_id
+        self.x = x
+        self.y = y
 
 
 # User object
@@ -287,15 +312,19 @@ class User(UserMixin):
         db.session.add(response)
         db.session.commit()
 
-    def add_tree(self, links):
+    def add_tree(self, links, nodes):
         current_session = self.participant.current_session
         tree = Tree()
         current_session.trees.append(tree)
         db.session.add(tree)
         for link in links:
-            new_link = Link(link['source']['id'], link['target']['id'])
+            new_link = Link(link['source']['id'], link['target']['id'], link['left'], link['right'])
             tree.links.append(new_link)
             db.session.add(new_link)
+        for node in nodes:
+            new_node = Node(node['name'], node['id'], node['x'], node['y'])
+            tree.nodes.append(new_node)
+            db.session.add(new_node)
         db.session.commit()
 
     def create_new_session(self, assignment_id, submit_to, hit_id):
@@ -531,7 +560,8 @@ def exp():
 def tree():
     if request.method == 'POST':
         links = json.loads(request.form.get('links'))
-        current_user.add_tree(links)
+        nodes = json.loads(request.form.get('nodes'))
+        current_user.add_tree(links, nodes)
         if current_user.participant.current_session.img_index == IMG_PER_SESSION:
             return redirect(url_for('results'))
         else:
@@ -676,7 +706,12 @@ def admin_users():
 
 def format_links(tree):
     links = tree.links
-    return sorted([{'source': link.source, 'target': link.target} for link in links], key=lambda x: x['source'])
+    return sorted([{'source': link.source, 'target': link.target, 'left': link.left, 'right': link.right} for link in links], key=lambda x: x['source'])
+
+def format_nodes(tree):
+    nodes = tree.nodes
+    return [{'name': node.name, 'id': node.node_id, 'x': node.x, 'y': node.y} for node in nodes]
+
 
 @app.route('/data/trees/<user_id>')
 @basic_auth.required
@@ -684,23 +719,13 @@ def data_trees_useruser_id(user_id):
     user = get_user_by_username(user_id).participant
     sessions = sorted(user.sessions, key=lambda s: s.finished_at)
     trees = [tree for session in sessions for tree in sorted(session.trees, key=lambda t: t.created_at)]
-    links = [format_links(t) for t in trees]
-    return json.dumps(links)
+    return json.dumps([{'links': format_links(t), 'nodes': format_nodes(t)} for t in trees])
+
 
 @app.route('/admin/trees/<user_id>')
 @basic_auth.required
 def admin_trees_user(user_id):
     return render_template('admin/trees.html', user_id=user_id)
-
-    
-    
-
-
-    
-
-
-
-
 
 
 if __name__ == '__main__':

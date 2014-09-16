@@ -84,6 +84,10 @@ function resetLinks(defaultLinks) {
         source = nodes_by_id[defaultLinks[i].source]
         target = nodes_by_id[defaultLinks[i].target]
         newLink = {source: source, target: target, right: true, left: false}
+        if (defaultLinks[i].hasOwnProperty('left')) {
+            newLink.right = defaultLinks[i].right;
+            newLink.left = defaultLinks[i].left;
+        }
         links.push(newLink)
     }
 }
@@ -318,6 +322,7 @@ function submitTree() {
         error.style.display = "block";
     } else {
         $('#links').val(JSON.stringify(links));
+        $('#nodes').val(JSON.stringify(nodes));
         $('form').submit();
     }
 }
@@ -486,14 +491,22 @@ function showExample(id, h, w) {
     });
 }
 
-function defaultTreeFromLinks(new_links) {
-    nodes.sort(function(a, b) { return a.id - b.id});
-    new_links.forEach(function(n) {
+function defaultTreeFromLinks(trees) {
+    trees.forEach(function(t) {
         setUpPage(margin, width, height);
-        links = [];
-        resetLinks(n);
-        prettyTree(n, height, width);
-        restart();
-    });
+        if (t.hasOwnProperty('nodes') && t.nodes.length > 0) {
+            nodes = t.nodes;
+            links = [];
+            resetLinks(t.links);
+            restart();
+        } else {
+            nodes.sort(function(a, b) { return a.id - b.id});
+            links = [];
+            n = t.links
+            resetLinks(n);
+            prettyTree(n, height, width);
+            restart();
+        }
+    })
     configureMouse();
 }
