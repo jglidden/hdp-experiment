@@ -201,15 +201,15 @@ class Link(db.Model):
     id = db.Column(db.String(128), primary_key=True)
     source = db.Column(db.Integer)
     target = db.Column(db.Integer)
-    left = db.Column(db.Boolean)
-    right = db.Column(db.Boolean)
+    l = db.Column(db.Boolean)
+    r = db.Column(db.Boolean)
 
     def __init__(self, source, target, left, right):
         self.id = str(uuid.uuid4())
         self.source = source
         self.target = target
-        self.left = left
-        self.right = right
+        self.l = left
+        self.r = right
 
 
 class Node(db.Model):
@@ -706,7 +706,7 @@ def admin_users():
 
 def format_links(tree):
     links = tree.links
-    return sorted([{'source': link.source, 'target': link.target, 'left': link.left, 'right': link.right} for link in links], key=lambda x: x['source'])
+    return sorted([{'source': link.source, 'target': link.target, 'left': link.l, 'right': link.r} for link in links], key=lambda x: x['source'])
 
 def format_nodes(tree):
     nodes = tree.nodes
