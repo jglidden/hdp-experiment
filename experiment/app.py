@@ -604,11 +604,11 @@ def results():
         submit_to = '/'
     current_user.finish_session()
     worker_id = current_user.get_username()
-    try:
-        qualification_score = mtc.get_qualification_score(QUALIFICATION_ID, worker_id)
-        mtc.update_qualification_score(QUALIFICATION_ID, worker_id, qualification_score+1)
-    except:
-        pass
+    # try:
+    #     qualification_score = mtc.get_qualification_score(QUALIFICATION_ID, worker_id)
+    #     mtc.update_qualification_score(QUALIFICATION_ID, worker_id, qualification_score+1)
+    # except:
+    #     pass
     if QUIZ:
         scores = current_user.get_scores()
         corrects = [s[0] for s in scores]
