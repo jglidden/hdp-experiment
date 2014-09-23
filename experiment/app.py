@@ -683,7 +683,11 @@ def data_responses():
         for b in range(BLOCKS):
             row = [i, b]
             for user, sessions in responses.iteritems():
-                row.append(sessions[i][b])
+                sess = sessions.get(i)
+                if sess is None:
+                    row.append('')
+                else:
+                    row.append(sess[b])
             rows.append(row)
     def generate():
         for row in rows:
