@@ -13,7 +13,7 @@ mtc = MTurkConnection(
         host=HOST)
 
 
-ASSIGNMENTS = 2
+ASSIGNMENTS = 4
 DAYS = 5
 QUALIFICATION_ID = '3SLCM7XLWH8WO61VD7YZPK4Q3U9T69'
 def main():
@@ -22,7 +22,7 @@ def main():
         if day != 0:
             r = Requirement(QUALIFICATION_ID, 'EqualTo', day)
             requirements.append(r)
-        worker_percent_assignments_approved = Requirement("000000000000000000L0", 'EqualTo', 95)
+        worker_percent_assignments_approved = Requirement("000000000000000000L0", 'GreaterThan', 94)
         requirements.append(worker_percent_assignments_approved)
 
         title = 'Hierarchical Categorization Learning {0}'.format(day)
@@ -31,11 +31,11 @@ def main():
         description='Learn a hierchary of categories by iterated guessing'
         create_hit_rs = mtc.create_hit(
                 question=question_form,
-                max_assignments=2,
+                max_assignments=ASSIGNMENTS,
                 title=title,
                 keywords=keywords,
                 description=description,
-                reward=3.00+day*.50,
+                reward=3.00+day*.75,
                 duration=2*60*60,
                 lifetime=5*24*60*60,
                 approval_delay=7*24*60*60,

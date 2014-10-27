@@ -13,8 +13,6 @@ var xSessions = d3.scale.linear()
 var y = d3.scale.linear()
     .range([height, 0]);
 
-var color = d3.scale.category10();
-
 var xAxis = d3.svg.axis()
     .scale(xSessions)
     .orient("bottom");
@@ -35,18 +33,19 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 function lineChart(error, data) {
-    color.domain(d3.keys(data[0]).filter(function(key) { return key != 'session' && key != 'x'; }));
+    names = d3.keys(data[0]).filter(function(key) { return key != 'session' && key != 'x'; });
 
     var xMax = d3.max(data, function(d) { return +d.x });
-    var users = color.domain().map(function(name) {
+    var users = names.map(function(name) {
         return {
             name: name,
-            values: data.map(function(d) {
+            tree_url: "/admin/trees/" + name,
+            values: data.filter(function(d) {return d[name] > 0}).map(function(d) {
                 return {
                     x: +d.session * xMax + +d.x,
                     y: +d[name],
                     session: +d.session,
-                    raw_x: +d.x};
+                    raw_x: +d.x}
             })
         };
     });
@@ -91,13 +90,16 @@ function lineChart(error, data) {
 
     var user = svg.selectAll(".user")
         .data(users)
-      .enter().append("g")
+      .enter().append("svg:a")
+        .attr("xlink:href", function(d) { return d.tree_url; })
+        .attr("target", "_blank")
+      .append("g")
         .attr("class", "user");
 
     user.append("path")
         .attr("class", "line")
-        .attr("d", function(d) { return line(d.values); })
-        .style("stroke", function(d) { return color(d.name); });
+        .attr("d", function(d) { return line(d.values); });
+
 
     svg.selectAll(".session")
         .data(users.filter(function(d) {return d.raw_x == xMax;}))

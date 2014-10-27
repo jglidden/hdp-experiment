@@ -666,7 +666,7 @@ def data_responses():
     finished_sessions.sort(key=lambda x: x.finished_at)
     results_by_user = defaultdict(lambda: [])
     for fs in finished_sessions:
-        results_by_user[fs.participant[0].id].append(fs)
+        results_by_user[fs.participant[0].username].append(fs)
     responses = {}
     for user, sessions in results_by_user.iteritems():
         responses[user] = {}
