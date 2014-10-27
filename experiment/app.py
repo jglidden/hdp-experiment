@@ -721,7 +721,7 @@ def format_nodes(tree):
 @basic_auth.required
 def data_trees_useruser_id(user_id):
     user = get_user_by_username(user_id).participant
-    sessions = sorted(user.sessions, key=lambda s: s.finished_at)
+    sessions = sorted(filter(lambda s: s.finished_at is not None, user.sessions), key=lambda s: s.finished_at)
     trees = [tree for session in sessions for tree in sorted(session.trees, key=lambda t: t.created_at)]
     return json.dumps([{'links': format_links(t), 'nodes': format_nodes(t)} for t in trees])
 
