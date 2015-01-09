@@ -14,12 +14,12 @@ from boto.mturk.connection import MTurkConnection
 import logging
 import uuid
 import datetime
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 app = Flask(__name__)
 app.secret_key = 'somethingverysecret'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
-#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@127.0.0.1:3307/treehdpfruit')
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@mysql.cocosci.berkeley.edu/treehdpfruit')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql://jglidden:rottin153@127.0.0.1:3307/treehdpfruit')
 app.config['ACCESS_ID'] = os.environ.get('AWS_ACCESS_KEY', 'AKIAJGBULS6Q3DXYVK4Q')
 app.config['SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', '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')
 app.config['AWS_HOST'] = 'mechanicalturk.amazonaws.com'
@@ -730,6 +730,88 @@ def data_trees_useruser_id(user_id):
 @basic_auth.required
 def admin_trees_user(user_id):
     return render_template('admin/trees.html', user_id=user_id)
+
+def adj_matrix_from_tree_dict(tree_dict):
+    nodes = exper.EXPERIMENT_KEY.keys()
+    adj_matrix = []
+    for row_node in nodes:
+        row = []
+        row_cats = set(tree_dict[row_node])
+        for col_node in nodes:
+            col_cats = set(tree_dict[col_node])
+            if row_cats > col_cats:
+                row.append(1)
+            else:
+                row.append(0)
+        adj_matrix.append(row)
+    return adj_matrix
+
+TRUE_ADJ_MATRIX = adj_matrix_from_tree_dict(exper.EXPERIMENT_KEY)
+
+ORDERED_NODES =  ['hob',
+                  'pim',
+                  'bot',
+                  'som',
+                  'vad',
+                  'tis',
+                  'rel',
+                  'mul',
+                  'fac',
+                  'zim',
+                  'com',
+                  'lar']
+
+NODE_ID_TO_NAME = {i+1: name for i, name in enumerate(ORDERED_NODES)}
+def adj_matrix_from_tree(tree):
+    nodes = exper.EXPERIMENT_KEY.keys()
+    adj_matrix = [nodes]
+    tree_dict = defaultdict(lambda: [])
+    for link in tree.links:
+        if link.r:
+            source = link.source
+            target = link.target
+        elif link.l:
+            source = link.target
+            target = link.source
+        else:
+            return
+        source_name = NODE_ID_TO_NAME[int(source)]
+        target_name = NODE_ID_TO_NAME[int(target)]
+        tree_dict[source_name] = target_name
+    return adj_matrix_from_tree_dict(tree_dict)
+
+
+@app.route('/data/trees')
+@basic_auth.required
+def trees_from_finished_users():
+    SESSION_MAX = 5
+    finished_sessions = Session.query.filter(Session.img_index == IMG_PER_SESSION).all()
+    user_session_counter = Counter([fs.participant[0].username for fs in finished_sessions])
+    finished_users = [user_id for user_id, count in user_session_counter.items() if count >= SESSION_MAX]
+    trees_by_session = defaultdict(lambda: {})
+    for username in finished_users:
+        user = get_user_by_username(username).participant
+        sessions = sorted(filter(lambda s: s.finished_at is not None, user.sessions), key = lambda s: s.finished_at)
+        for i, session in enumerate(sessions[:SESSION_MAX]):
+            trees = sorted(session.trees, key=lambda t: t.created_at)
+            trees_by_session[i][username] = [adj_matrix_from_tree(tree) for tree in trees]
+    return json.dumps(dict(trees_by_session))
+
+@app.route('/data/scores')
+@basic_auth.required
+def scores_from_finished_users():
+    SESSION_MAX = 5
+    finished_sessions = Session.query.filter(Session.img_index == IMG_PER_SESSION).all()
+    user_session_counter = Counter([fs.participant[0].username for fs in finished_sessions])
+    finished_users = [user_id for user_id, count in user_session_counter.items() if count >= SESSION_MAX]
+    scores = []
+    for username in finished_users:
+        user = get_user_by_username(username).participant
+        sessions = sorted(filter(lambda s: s.finished_at is not None, user.sessions), key = lambda s: s.finished_at)
+        for i, session in enumerate(sessions[:SESSION_MAX]):
+            for j, block in enumerate(sorted(session.blocks, key=lambda b: b.created_at)):
+                scores.append([username, i, j, block.correct / float(block.incorrect + block.correct)])
+    return json.dumps(scores)
 
 
 if __name__ == '__main__':
